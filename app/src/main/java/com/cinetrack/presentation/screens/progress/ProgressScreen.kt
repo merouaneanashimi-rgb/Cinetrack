@@ -1,5 +1,6 @@
 package com.cinetrack.presentation.screens.progress
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -14,9 +15,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -24,26 +30,12 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.cinetrack.BuildConfig
 import com.cinetrack.R
+import com.cinetrack.domain.model.AirStatus
 import com.cinetrack.domain.model.Episode
 import com.cinetrack.domain.model.Show
 import com.cinetrack.presentation.components.PullToRefreshBox
-import com.patrykandpatrick.vico.compose.axis.horizontal.bottomAxis
-import com.patrykandpatrick.vico.compose.axis.vertical.startAxis
-import com.patrykandpatrick.vico.compose.chart.Chart
-import com.patrykandpatrick.vico.compose.chart.column.columnChart
-import com.patrykandpatrick.vico.compose.chart.pie.pieChart
-import com.patrykandpatrick.vico.compose.component.shapeComponent
-import com.patrykandpatrick.vico.compose.component.textComponent
-import com.patrykandpatrick.vico.compose.dimensions.dimensionsOf
-import com.patrykandpatrick.vico.compose.legend.verticalLegend
-import com.patrykandpatrick.vico.compose.legend.verticalLegendItem
-import com.patrykandpatrick.vico.compose.style.currentChartStyle
-import com.patrykandpatrick.vico.core.chart.values.AxisValuesOverrider
-import com.patrykandpatrick.vico.core.component.shape.Shapes
-import com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer
-import com.patrykandpatrick.vico.core.entry.FloatEntry
-import com.patrykandpatrick.vico.core.entry.entryModelOf
-import com.patrykandpatrick.vico.core.legend.VerticalLegend
+import java.text.SimpleDateFormat
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -76,19 +68,13 @@ fun ProgressScreen(
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
-                // Overview Cards
-                item {
-                    OverviewCards(stats = stats)
-                }
+                item { OverviewCards(stats = stats) }
 
-                // Continue Watching
                 if (continueWatching.isNotEmpty()) {
                     item {
                         SectionTitle(stringResource(R.string.continue_watching))
-                        LazyRow(
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                            contentPadding = PaddingValues(horizontal = 0.dp)
-                        ) {
+                        Spacer(Modifier.height(8.dp))
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                             items(continueWatching) { show ->
                                 ContinueWatchingProgressCard(
                                     show = show,
@@ -99,16 +85,16 @@ fun ProgressScreen(
                     }
                 }
 
-                // Statistics
                 item {
                     SectionTitle(stringResource(R.string.statistics))
+                    Spacer(Modifier.height(8.dp))
                     StatsCharts(stats = stats)
                 }
 
-                // Recently Watched
                 if (recentlyWatched.isNotEmpty()) {
                     item {
                         SectionTitle(stringResource(R.string.recently_watched))
+                        Spacer(Modifier.height(8.dp))
                         RecentlyWatchedList(
                             episodes = recentlyWatched.take(20),
                             onShowClick = onShowClick
@@ -122,135 +108,46 @@ fun ProgressScreen(
 
 @Composable
 fun OverviewCards(stats: StatsData, modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            StatCard(
-                title = stringResource(R.string.total_shows),
-                value = stats.totalShowsTracked.toString(),
-                icon = Icons.Default.LiveTv,
-                modifier = Modifier.weight(1f)
-            )
-            StatCard(
-                title = stringResource(R.string.total_episodes),
-                value = stats.totalEpisodesWatched.toString(),
-                icon = Icons.Default.PlaylistPlay,
-                modifier = Modifier.weight(1f)
-            )
+    Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            StatCard(title = stringResource(R.string.total_shows), value = stats.totalShowsTracked.toString(), icon = Icons.Default.LiveTv, modifier = Modifier.weight(1f))
+            StatCard(title = stringResource(R.string.total_episodes), value = stats.totalEpisodesWatched.toString(), icon = Icons.Default.PlaylistPlay, modifier = Modifier.weight(1f))
         }
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            StatCard(
-                title = stringResource(R.string.total_watch_time),
-                value = "${stats.totalWatchTimeHours}h",
-                icon = Icons.Default.Schedule,
-                modifier = Modifier.weight(1f)
-            )
-            StatCard(
-                title = stringResource(R.string.total_movies),
-                value = stats.totalMoviesWatched.toString(),
-                icon = Icons.Default.Movie,
-                modifier = Modifier.weight(1f)
-            )
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            StatCard(title = stringResource(R.string.total_watch_time), value = "${stats.totalWatchTimeHours}h", icon = Icons.Default.Schedule, modifier = Modifier.weight(1f))
+            StatCard(title = stringResource(R.string.total_movies), value = stats.totalMoviesWatched.toString(), icon = Icons.Default.Movie, modifier = Modifier.weight(1f))
         }
     }
 }
 
 @Composable
-fun StatCard(
-    title: String,
-    value: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        shape = RoundedCornerShape(16.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(24.dp)
-            )
-            Text(
-                text = value,
-                style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+fun StatCard(title: String, value: String, icon: androidx.compose.ui.graphics.vector.ImageVector, modifier: Modifier = Modifier) {
+    Card(modifier = modifier, colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface), shape = RoundedCornerShape(16.dp)) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Icon(imageVector = icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
+            Text(text = value, style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.onSurface)
+            Text(text = title, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
 
 @Composable
-fun ContinueWatchingProgressCard(
-    show: Show,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier
-            .width(160.dp)
-            .clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        shape = RoundedCornerShape(16.dp)
-    ) {
+fun ContinueWatchingProgressCard(show: Show, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    Card(modifier = modifier.width(160.dp).clickable(onClick = onClick), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface), shape = RoundedCornerShape(16.dp)) {
         Column {
-            Box {
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data("${BuildConfig.TMDB_IMAGE_BASE_URL}w342${show.posterPath}")
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = show.title,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp)
-                )
-            }
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current).data("${BuildConfig.TMDB_IMAGE_BASE_URL}w342${show.posterPath}").crossfade(true).build(),
+                contentDescription = show.title, contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxWidth().height(200.dp)
+            )
             Column(modifier = Modifier.padding(12.dp)) {
-                Text(
-                    text = show.title,
-                    style = MaterialTheme.typography.bodyMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                show.nextEpisodeTitle?.let {
-                    Text(
-                        text = "S${show.nextEpisodeSeason}E${show.nextEpisodeNumber}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                Text(text = show.title, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                show.nextEpisodeSeason?.let {
+                    Text(text = "S${show.nextEpisodeSeason}E${show.nextEpisodeNumber}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 LinearProgressIndicator(
                     progress = { show.watchProgress },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 8.dp)
-                        .height(4.dp)
-                        .clip(RoundedCornerShape(2.dp)),
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp).height(4.dp).clip(RoundedCornerShape(2.dp)),
                     color = MaterialTheme.colorScheme.primary,
                     trackColor = MaterialTheme.colorScheme.surfaceVariant
                 )
@@ -261,86 +158,47 @@ fun ContinueWatchingProgressCard(
 
 @Composable
 fun StatsCharts(stats: StatsData, modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        // Weekly Activity Bar Chart
-        Card(
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface
-            ),
-            shape = RoundedCornerShape(16.dp)
-        ) {
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val surfaceVariant = MaterialTheme.colorScheme.surfaceVariant
+
+    Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        // Bar Chart - Weekly Activity
+        Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface), shape = RoundedCornerShape(16.dp)) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = "Episodes per Week",
-                    style = MaterialTheme.typography.titleSmall,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
+                Text(text = "Episodes per Week", style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(bottom = 12.dp))
                 if (stats.weeklyActivity.isNotEmpty()) {
-                    val producer = ChartEntryModelProducer()
-                    val entries = stats.weeklyActivity.mapIndexed { index, value ->
-                        FloatEntry(index.toFloat(), value.toFloat())
+                    val maxValue = stats.weeklyActivity.maxOrNull()?.toFloat() ?: 1f
+                    Canvas(modifier = Modifier.fillMaxWidth().height(140.dp)) {
+                        drawBarChart(stats.weeklyActivity, maxValue, primaryColor, surfaceVariant)
                     }
-                    producer.setEntries(entries)
-                    Chart(
-                        chart = columnChart(),
-                        chartModelProducer = producer,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(150.dp),
-                        startAxis = startAxis(),
-                        bottomAxis = bottomAxis()
-                    )
+                } else {
+                    Box(modifier = Modifier.fillMaxWidth().height(100.dp), contentAlignment = Alignment.Center) {
+                        Text("No activity yet", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                    }
                 }
             }
         }
 
         // Status Distribution
         if (stats.statusDistribution.isNotEmpty()) {
-            Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                ),
-                shape = RoundedCornerShape(16.dp)
-            ) {
+            Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface), shape = RoundedCornerShape(16.dp)) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = "Show Status Distribution",
-                        style = MaterialTheme.typography.titleSmall,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
+                    Text(text = "Show Status Distribution", style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(bottom = 12.dp))
+                    val total = stats.statusDistribution.values.sum().toFloat()
                     stats.statusDistribution.forEach { (status, count) ->
-                        val color = try {
-                            val airStatus = com.cinetrack.domain.model.AirStatus.valueOf(status)
-                            Color(airStatus.toColor())
-                        } catch (e: Exception) {
-                            MaterialTheme.colorScheme.primary
-                        }
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(12.dp)
-                                    .background(color, RoundedCornerShape(3.dp))
-                            )
+                        val color = try { Color(AirStatus.valueOf(status).toColor()) } catch (e: Exception) { primaryColor }
+                        val pct = if (total > 0) (count / total * 100).toInt() else 0
+                        Row(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Box(modifier = Modifier.size(12.dp).background(color, RoundedCornerShape(3.dp)))
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = status,
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.weight(1f)
-                            )
-                            Text(
-                                text = count.toString(),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                            Text(text = status, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+                            Text(text = "$count ($pct%)", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
+                        LinearProgressIndicator(
+                            progress = { if (total > 0) count / total else 0f },
+                            modifier = Modifier.fillMaxWidth().height(4.dp).clip(RoundedCornerShape(2.dp)).padding(bottom = 4.dp),
+                            color = color, trackColor = surfaceVariant
+                        )
                     }
                 }
             }
@@ -348,58 +206,42 @@ fun StatsCharts(stats: StatsData, modifier: Modifier = Modifier) {
     }
 }
 
+private fun DrawScope.drawBarChart(data: List<Int>, maxValue: Float, barColor: Color, bgColor: Color) {
+    if (data.isEmpty()) return
+    val barWidth = size.width / (data.size * 1.5f)
+    val spacing = barWidth * 0.5f
+    data.forEachIndexed { index, value ->
+        val barHeight = if (maxValue > 0) (value / maxValue) * size.height * 0.85f else 0f
+        val x = index * (barWidth + spacing)
+        val y = size.height - barHeight
+        // Background bar
+        drawRoundRect(color = bgColor, topLeft = Offset(x, 0f), size = Size(barWidth, size.height), cornerRadius = CornerRadius(4f))
+        // Value bar
+        if (barHeight > 0) {
+            drawRoundRect(color = barColor, topLeft = Offset(x, y), size = Size(barWidth, barHeight), cornerRadius = CornerRadius(4f))
+        }
+    }
+}
+
 @Composable
-fun RecentlyWatchedList(
-    episodes: List<Episode>,
-    onShowClick: (Long) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
+fun RecentlyWatchedList(episodes: List<Episode>, onShowClick: (Long) -> Unit, modifier: Modifier = Modifier) {
+    Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         episodes.forEach { episode ->
             Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onShowClick(episode.showId) },
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                ),
+                modifier = Modifier.fillMaxWidth().clickable { onShowClick(episode.showId) },
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Row(
-                    modifier = Modifier.padding(12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                Row(modifier = Modifier.padding(12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
                     AsyncImage(
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data("${BuildConfig.TMDB_IMAGE_BASE_URL}w185${episode.stillPath}")
-                            .crossfade(true)
-                            .build(),
-                        contentDescription = episode.name,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .width(80.dp)
-                            .height(50.dp)
-                            .clip(RoundedCornerShape(8.dp))
+                        model = ImageRequest.Builder(LocalContext.current).data("${BuildConfig.TMDB_IMAGE_BASE_URL}w185${episode.stillPath}").crossfade(true).build(),
+                        contentDescription = episode.name, contentScale = ContentScale.Crop,
+                        modifier = Modifier.width(80.dp).height(50.dp).clip(RoundedCornerShape(8.dp))
                     )
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "S${episode.seasonNumber}E${episode.episodeNumber} · ${episode.name}",
-                            style = MaterialTheme.typography.bodyMedium,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                        episode.watchedAt?.let { watchedAt ->
-                            val date = java.text.SimpleDateFormat("MMM d, yyyy", java.util.Locale.getDefault())
-                                .format(java.util.Date(watchedAt))
-                            Text(
-                                text = date,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                        Text(text = "S${episode.seasonNumber}E${episode.episodeNumber} · ${episode.name}", style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        episode.watchedAt?.let {
+                            Text(text = SimpleDateFormat("MMM d, yyyy", Locale.getDefault()).format(Date(it)), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 }
@@ -410,14 +252,5 @@ fun RecentlyWatchedList(
 
 @Composable
 fun SectionTitle(title: String, modifier: Modifier = Modifier) {
-    Text(
-        text = title,
-        style = MaterialTheme.typography.titleMedium,
-        modifier = modifier.padding(vertical = 8.dp)
-    )
-}
-
-@Composable
-private fun stringResource(id: Int): String {
-    return androidx.compose.ui.res.stringResource(id)
+    Text(text = title, style = MaterialTheme.typography.titleMedium, modifier = modifier)
 }

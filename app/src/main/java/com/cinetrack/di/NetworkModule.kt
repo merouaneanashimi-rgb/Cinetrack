@@ -9,6 +9,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import okhttp3.Cache
+import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -26,7 +27,7 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideCache(@ApplicationContext context: Context): Cache {
-        val cacheSize = 50L * 1024 * 1024 // 50 MB
+        val cacheSize = 50L * 1024 * 1024
         val cacheDir = File(context.cacheDir, "http_cache")
         return Cache(cacheDir, cacheSize)
     }
@@ -37,15 +38,19 @@ object NetworkModule {
         return OkHttpClient.Builder()
             .cache(cache)
             .addInterceptor { chain ->
-                val request = chain.request().newBuilder()
-                    .addHeader("Authorization", "Bearer ${BuildConfig.TMDB_API_KEY}")
+                val original = chain.request()
+                val url: HttpUrl = original.url.newBuilder()
+                    .addQueryParameter("api_key", BuildConfig.TMDB_API_KEY)
+                    .build()
+                val request = original.newBuilder()
+                    .url(url)
                     .addHeader("Content-Type", "application/json;charset=utf-8")
                     .build()
                 chain.proceed(request)
             }
             .addInterceptor(HttpLoggingInterceptor().apply {
                 level = if (BuildConfig.DEBUG) {
-                    HttpLoggingInterceptor.Level.BODY
+                    HttpLoggingInterceptor.Level.BASIC
                 } else {
                     HttpLoggingInterceptor.Level.NONE
                 }

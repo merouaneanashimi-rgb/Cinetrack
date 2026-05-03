@@ -37,4 +37,6 @@
 
     <!-- Widget -->
     <color name="widget_background">#1A2A3A</color>
+    <color name="ic_launcher_background">#0D1B2A</color>
 </resources>
+<!-- Launcher -->
