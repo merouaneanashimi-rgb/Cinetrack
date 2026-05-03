@@ -1,0 +1,32 @@
+package com.cinetrack.domain.model
+
+data class Movie(
+    val id: Long = 0,
+    val tmdbId: Int,
+    val traktId: Int? = null,
+    val title: String,
+    val originalTitle: String? = null,
+    val posterPath: String? = null,
+    val backdropPath: String? = null,
+    val releaseDate: String? = null,
+    val runtime: Int? = null,
+    val genres: List<String> = emptyList(),
+    val voteAverage: Double = 0.0,
+    val voteCount: Int = 0,
+    val popularity: Double = 0.0,
+    val overview: String? = null,
+    val status: String? = null,
+    val budget: Long? = null,
+    val revenue: Long? = null,
+    val productionCompanies: List<String> = emptyList(),
+    val userListType: UserListType? = null,
+    val addedAt: Long = System.currentTimeMillis(),
+    val isWatched: Boolean = false,
+    val watchedAt: Long? = null,
+    val userRating: Double? = null,
+    val userNotes: String? = null,
+    val isFavorite: Boolean = false,
+    val lastSyncedAt: Long = 0,
+    val collectionId: Int? = null,
+    val collectionName: String? = null
+)

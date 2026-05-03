@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App Colors -->
+    <color name="background">#0D1B2A</color>
+    <color name="surface">#1A2A3A</color>
+    <color name="surface_variant">#243447</color>
+    <color name="primary">#01B4E4</color>
+    <color name="primary_container">#014D61</color>
+    <color name="secondary">#90CEA1</color>
+    <color name="secondary_container">#1B4332</color>
+    <color name="error">#F44336</color>
+    <color name="on_surface">#FFFFFF</color>
+    <color name="on_surface_variant">#8899AA</color>
+    <color name="outline">#3A5068</color>
+    <color name="outline_variant">#2A4055</color>
+
+    <!-- Air Status Colors -->
+    <color name="status_returning">#4CAF50</color>
+    <color name="status_hiatus">#FFC107</color>
+    <color name="status_upcoming">#2196F3</color>
+    <color name="status_ended">#9E9E9E</color>
+    <color name="status_canceled">#F44336</color>
+    <color name="status_in_production">#9C27B0</color>
+
+    <!-- Rating -->
+    <color name="rating_star">#FFD700</color>
+
+    <!-- Accent Options -->
+    <color name="accent_teal">#01B4E4</color>
+    <color name="accent_green">#90CEA1</color>
+    <color name="accent_purple">#B983FF</color>
+    <color name="accent_orange">#FF9F43</color>
+    <color name="accent_pink">#FF6B9D</color>
+    <color name="accent_red">#FF6B6B</color>
+    <color name="accent_blue">#4DABF7</color>
+    <color name="accent_lime">#A9E34B</color>
+
+    <!-- Widget -->
+    <color name="widget_background">#1A2A3A</color>
+</resources>

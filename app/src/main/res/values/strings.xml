@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">CineTrack</string>
+
+    <!-- Bottom Navigation -->
+    <string name="nav_discover">Discover</string>
+    <string name="nav_movies">Movies</string>
+    <string name="nav_tv_shows">TV Shows</string>
+    <string name="nav_progress">Progress</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Common -->
+    <string name="search">Search</string>
+    <string name="cancel">Cancel</string>
+    <string name="confirm">Confirm</string>
+    <string name="save">Save</string>
+    <string name="delete">Delete</string>
+    <string name="edit">Edit</string>
+    <string name="done">Done</string>
+    <string name="close">Close</string>
+    <string name="back">Back</string>
+    <string name="retry">Try Again</string>
+    <string name="loading">Loading…</string>
+    <string name="error_generic">Something went wrong</string>
+    <string name="error_network">No internet connection</string>
+    <string name="empty_state_title">Nothing here yet</string>
+    <string name="empty_state_subtitle">Start exploring to add items</string>
+    <string name="see_all">See All</string>
+    <string name="rating_format">%.1f</string>
+
+    <!-- Discover -->
+    <string name="discover_title">Discover</string>
+    <string name="trending_today">Trending Today</string>
+    <string name="popular">Popular</string>
+    <string name="top_rated">Top Rated</string>
+    <string name="now_playing">Now Playing</string>
+    <string name="upcoming">Upcoming</string>
+    <string name="airing_this_week">Airing This Week</string>
+    <string name="continue_watching">Continue Watching</string>
+    <string name="search_hint">Search movies, shows, people…</string>
+    <string name="recent_searches">Recent Searches</string>
+    <string name="clear_all">Clear All</string>
+
+    <!-- Search Tabs -->
+    <string name="tab_all">All</string>
+    <string name="tab_movies">Movies</string>
+    <string name="tab_shows">Shows</string>
+    <string name="tab_people">People</string>
+
+    <!-- Movies -->
+    <string name="movies_discover">Discover</string>
+    <string name="movies_watchlist">Watchlist</string>
+    <string name="movies_watched">Watched</string>
+    <string name="movies_favorites">Favorites</string>
+    <string name="movies_custom_lists">Custom Lists</string>
+
+    <!-- TV Shows -->
+    <string name="tv_discover">Discover</string>
+    <string name="tv_watching">Watching</string>
+    <string name="tv_watchlist">Watchlist</string>
+    <string name="tv_watched">Watched</string>
+    <string name="tv_dropped">Dropped</string>
+    <string name="tv_plan_to_watch">Plan to Watch</string>
+    <string name="tv_favorites">Favorites</string>
+
+    <!-- Air Status -->
+    <string name="status_returning">AIRING</string>
+    <string name="status_hiatus">HIATUS</string>
+    <string name="status_upcoming">UPCOMING</string>
+    <string name="status_ended">ENDED</string>
+    <string name="status_canceled">CANCELED</string>
+    <string name="status_in_production">IN PRODUCTION</string>
+
+    <!-- Air Status Subtabs -->
+    <string name="subtab_all">ALL</string>
+    <string name="subtab_airing">AIRING</string>
+    <string name="subtab_hiatus">HIATUS</string>
+    <string name="subtab_ended">ENDED</string>
+    <string name="subtab_upcoming">UPCOMING</string>
+
+    <!-- Detail -->
+    <string name="overview">Overview</string>
+    <string name="cast">Cast</string>
+    <string name="crew">Crew</string>
+    <string name="trailers">Trailers</string>
+    <string name="similar">Similar</string>
+    <string name="recommendations">Recommendations</string>
+    <string name="seasons">Seasons</string>
+    <string name="episodes">Episodes</string>
+    <string name="up_next">Up Next</string>
+    <string name="mark_watched">Mark as Watched</string>
+    <string name="mark_unwatched">Mark as Unwatched</string>
+    <string name="mark_all_watched">Mark All Watched</string>
+    <string name="mark_all_unwatched">Mark All Unwatched</string>
+    <string name="add_note">Add Note</string>
+    <string name="share">Share</string>
+    <string name="copy_title">Copy Title</string>
+    <string name="favorite">Favorite</string>
+    <string name="unfavorite">Unfavorite</string>
+    <string name="rate">Rate</string>
+    <string name="notify_me">Notify Me</string>
+    <string name="watchlist">Watchlist</string>
+    <string name="watching">Watching</string>
+    <string name="watched">Watched</string>
+    <string name="dropped">Dropped</string>
+    <string name="plan_to_watch">Plan to Watch</string>
+
+    <!-- Progress/Stats -->
+    <string name="stats_overview">Overview</string>
+    <string name="total_shows">Total Shows</string>
+    <string name="total_episodes">Total Episodes</string>
+    <string name="total_watch_time">Watch Time</string>
+    <string name="total_movies">Total Movies</string>
+    <string name="episode_calendar">Episode Calendar</string>
+    <string name="upcoming_episodes">Upcoming Episodes</string>
+    <string name="airing_now">Airing Now</string>
+    <string name="recently_watched">Recently Watched</string>
+    <string name="statistics">Statistics</string>
+    <string name="year_in_review">Year in Review</string>
+    <string name="hours_format">%d hrs</string>
+    <string name="episodes_format">%d eps</string>
+    <string name="streak_active">🔥 %d-day streak!</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="appearance">Appearance</string>
+    <string name="theme">Theme</string>
+    <string name="theme_dark">Dark</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_system">System</string>
+    <string name="accent_color">Accent Color</string>
+    <string name="grid_columns">Grid Columns</string>
+    <string name="card_style">Card Style</string>
+    <string name="rating_scale">Rating Scale</string>
+    <string name="rating_scale_stars">Stars (0.5–5)</string>
+    <string name="rating_scale_numeric">Numeric (1–10)</string>
+    <string name="content">Content</string>
+    <string name="default_language">Default Language</string>
+    <string name="adult_content">Adult Content</string>
+    <string name="region">Region</string>
+    <string name="tracking">Tracking</string>
+    <string name="default_list">Default List for Shows</string>
+    <string name="auto_mark_watched">Auto-mark as Watched</string>
+    <string name="notifications">Notifications</string>
+    <string name="notification_settings">Notification Settings</string>
+    <string name="data_storage">Data &amp; Storage</string>
+    <string name="cache_size">Cache Size</string>
+    <string name="clear_cache">Clear Image Cache</string>
+    <string name="export_json">Export as JSON</string>
+    <string name="import_json">Import from JSON</string>
+    <string name="export_csv">Export Watch History (CSV)</string>
+    <string name="about">About</string>
+    <string name="app_version">Version</string>
+    <string name="privacy_policy">Privacy Policy</string>
+    <string name="rate_app">Rate App</string>
+
+    <!-- Notifications -->
+    <string name="notification_channel_episodes">Episode Alerts</string>
+    <string name="notification_channel_movies">Movie Alerts</string>
+    <string name="notification_channel_reminders">Reminders</string>
+    <string name="notification_channel_social">Streak &amp; Motivational</string>
+    <string name="quiet_hours">Quiet Hours</string>
+    <string name="test_notification">Test Notification</string>
+    <string name="notification_history">Notification History</string>
+
+    <!-- Custom Lists -->
+    <string name="custom_lists">Custom Lists</string>
+    <string name="create_list">Create List</string>
+    <string name="list_name">List Name</string>
+    <string name="list_description">Description (optional)</string>
+    <string name="add_to_list">Add to Custom List</string>
+    <string name="remove_from_list">Remove from List</string>
+
+    <!-- Bulk Actions -->
+    <string name="select">Select</string>
+    <string name="select_all">Select All</string>
+    <string name="mark_selected_watched">Mark Watched</string>
+    <string name="move_to_list">Move to List</string>
+    <string name="remove_selected">Remove</string>
+    <string name="export_selected">Export Selected</string>
+    <string name="rate_selected">Rate All</string>
+    <string name="favorite_selected">Favorite All</string>
+
+    <!-- Filters -->
+    <string name="filter">Filter</string>
+    <string name="sort">Sort</string>
+    <string name="apply">Apply</string>
+    <string name="reset_all">Reset All</string>
+    <string name="filter_added_at">Added At</string>
+    <string name="filter_release_date">Release Date</string>
+    <string name="filter_genres">Genres</string>
+    <string name="filter_rating">Rating</string>
+    <string name="filter_runtime">Runtime</string>
+    <string name="filter_network">Network</string>
+    <string name="filter_country">Country</string>
+    <string name="filter_language">Language</string>
+    <string name="filter_show_status">Show Status</string>
+    <string name="filter_movie_status">Movie Status</string>
+    <string name="filter_watch_progress">Watch Progress</string>
+    <string name="filter_user_rating">User Rating</string>
+    <string name="filter_is_favorite">Favorite</string>
+
+    <!-- Widget -->
+    <string name="widget_next_episode">Next Episode</string>
+    <string name="widget_continue_watching">Continue Watching</string>
+
+    <!-- Time -->
+    <string name="today">Today</string>
+    <string name="tomorrow">Tomorrow</string>
+    <string name="this_week">This Week</string>
+    <string name="this_month">This Month</string>
+    <string name="later">Later</string>
+    <string name="in_days">in %d days</string>
+    <string name="eps_behind">%d eps behind</string>
+
+    <!-- TMDB Attribution -->
+    <string name="tmdb_attribution">This product uses the TMDB API but is not endorsed or certified by TMDB.</string>
+    <string name="trakt_attribution">Data provided by Trakt.tv</string>
+</resources>
