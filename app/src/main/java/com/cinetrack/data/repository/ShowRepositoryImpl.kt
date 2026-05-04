@@ -28,24 +28,24 @@ class ShowRepositoryImpl @Inject constructor(
         return showDao.getByTmdbId(tmdbId)?.toDomainModel()
     }
 
-    override fun getShowsByListType(listType: UserListType): Flow<List<Show>> {
+    override fun getShowsByListType(listType: com.cinetrack.domain.model.UserListType): Flow<List<Show>> {
         val entityListType = com.cinetrack.data.local.entity.UserListType.valueOf(listType.name)
-        return showDao.getByListType(entityListType).map { list -> list.map { it.toDomainModel() } }
+        return showDao.getByListType(entityListType).map { list -> list.map { entity -> entity.toDomainModel() } }
     }
 
-    override fun getShowsByListTypeAndAirStatus(listType: UserListType, airStatus: AirStatus): Flow<List<Show>> {
+    override fun getShowsByListTypeAndAirStatus(listType: com.cinetrack.domain.model.UserListType, airStatus: com.cinetrack.domain.model.AirStatus): Flow<List<Show>> {
         val eListType = com.cinetrack.data.local.entity.UserListType.valueOf(listType.name)
         val eAirStatus = com.cinetrack.data.local.entity.AirStatus.valueOf(airStatus.name)
-        return showDao.getByListTypeAndAirStatus(eListType, eAirStatus).map { list -> list.map { it.toDomainModel() } }
+        return showDao.getByListTypeAndAirStatus(eListType, eAirStatus).map { list -> list.map { entity -> entity.toDomainModel() } }
     }
 
     override fun getWatchingShowsByNextEpisode(): Flow<List<Show>> {
         return showDao.getWatchingByNextEpisode().map { list -> list.map { it.toDomainModel() } }
     }
 
-    override fun getShowsByAirStatus(airStatus: AirStatus): Flow<List<Show>> {
-        return showDao.getByAirStatusAndList(airStatus, com.cinetrack.data.local.entity.UserListType.WATCHING)
-            .map { list -> list.map { it.toDomainModel() } }
+    override fun getShowsByAirStatus(airStatus: com.cinetrack.domain.model.AirStatus): Flow<List<Show>> {
+        return showDao.getByAirStatusAndList(com.cinetrack.data.local.entity.AirStatus.valueOf(airStatus.name), com.cinetrack.data.local.entity.UserListType.WATCHING)
+            .map { list -> list.map { entity -> entity.toDomainModel() } }
     }
 
     override fun getFavoriteShows(): Flow<List<Show>> {
@@ -60,7 +60,7 @@ class ShowRepositoryImpl @Inject constructor(
         return showDao.getTrackedCount()
     }
 
-    override suspend fun addShow(show: Show, listType: UserListType): Long {
+    override suspend fun addShow(show: Show, listType: com.cinetrack.domain.model.UserListType): Long {
         val entityListType = com.cinetrack.data.local.entity.UserListType.valueOf(listType.name)
         val entity = show.toEntity().copy(userListType = entityListType, addedAt = System.currentTimeMillis())
         val id = showDao.insert(entity)
@@ -83,8 +83,8 @@ class ShowRepositoryImpl @Inject constructor(
         return id
     }
 
-    override suspend fun updateShowListType(showId: Long, listType: UserListType?) {
-        showDao.updateListType(showId, listType?.let { com.cinetrack.data.local.entity.UserListType.valueOf(it.name) })
+    override suspend fun updateShowListType(showId: Long, listType: com.cinetrack.domain.model.UserListType?) {
+        showDao.updateListType(showId, listType?.let { domainType -> com.cinetrack.data.local.entity.UserListType.valueOf(domainType.name) })
     }
 
     override suspend fun updateShowFavorite(showId: Long, isFavorite: Boolean) {
@@ -292,7 +292,7 @@ class ShowRepositoryImpl @Inject constructor(
         numberOfSeasons = numberOfSeasons,
         numberOfEpisodes = numberOfEpisodes,
         episodeRuntime = episodeRuntime,
-        userListType = userListType?.let { com.cinetrack.domain.model.UserListType.valueOf(it.name) },
+        userListType = userListType?.let { entityType -> com.cinetrack.domain.model.UserListType.valueOf(entityType.name) },
         addedAt = addedAt,
         userRating = userRating,
         userNotes = userNotes,
@@ -326,7 +326,7 @@ class ShowRepositoryImpl @Inject constructor(
         numberOfSeasons = numberOfSeasons,
         numberOfEpisodes = numberOfEpisodes,
         episodeRuntime = episodeRuntime,
-        userListType = userListType?.let { com.cinetrack.data.local.entity.UserListType.valueOf(it.name) },
+        userListType = userListType?.let { domainType -> com.cinetrack.data.local.entity.UserListType.valueOf(domainType.name) },
         addedAt = addedAt,
         userRating = userRating,
         userNotes = userNotes,

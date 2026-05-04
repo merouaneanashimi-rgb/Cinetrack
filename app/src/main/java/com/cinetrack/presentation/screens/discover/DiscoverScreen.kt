@@ -172,7 +172,6 @@ fun DiscoverScreen(
 }
 
 @OptIn(ExperimentalFoundationApi::class)
-@androidx.compose.runtime.Composable
 private fun LazyListScope.carouselSection(
     title: String,
     items: List<MediaItem>,

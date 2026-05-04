@@ -26,9 +26,9 @@ class MovieRepositoryImpl @Inject constructor(
         return movieDao.getByTmdbId(tmdbId)?.toDomainModel()
     }
 
-    override fun getMoviesByListType(listType: UserListType): Flow<List<Movie>> {
+    override fun getMoviesByListType(listType: com.cinetrack.domain.model.UserListType): Flow<List<Movie>> {
         return movieDao.getByListType(com.cinetrack.data.local.entity.UserListType.valueOf(listType.name))
-            .map { list -> list.map { it.toDomainModel() } }
+            .map { list -> list.map { entity -> entity.toDomainModel() } }
     }
 
     override fun getFavoriteMovies(): Flow<List<Movie>> {
@@ -47,7 +47,7 @@ class MovieRepositoryImpl @Inject constructor(
         return movieDao.getTrackedCount()
     }
 
-    override suspend fun addMovie(movie: Movie, listType: UserListType): Long {
+    override suspend fun addMovie(movie: Movie, listType: com.cinetrack.domain.model.UserListType): Long {
         val entity = movie.toEntity().copy(
             userListType = com.cinetrack.data.local.entity.UserListType.valueOf(listType.name),
             addedAt = System.currentTimeMillis()
@@ -55,8 +55,8 @@ class MovieRepositoryImpl @Inject constructor(
         return movieDao.insert(entity)
     }
 
-    override suspend fun updateMovieListType(movieId: Long, listType: UserListType?) {
-        movieDao.updateListType(movieId, listType?.let { com.cinetrack.data.local.entity.UserListType.valueOf(it.name) })
+    override suspend fun updateMovieListType(movieId: Long, listType: com.cinetrack.domain.model.UserListType?) {
+        movieDao.updateListType(movieId, listType?.let { domainType -> com.cinetrack.data.local.entity.UserListType.valueOf(domainType.name) })
     }
 
     override suspend fun updateMovieFavorite(movieId: Long, isFavorite: Boolean) {
@@ -126,7 +126,7 @@ class MovieRepositoryImpl @Inject constructor(
         budget = budget,
         revenue = revenue,
         productionCompanies = productionCompaniesJson?.split(",") ?: emptyList(),
-        userListType = userListType?.let { com.cinetrack.domain.model.UserListType.valueOf(it.name) },
+        userListType = userListType?.let { entityType -> com.cinetrack.domain.model.UserListType.valueOf(entityType.name) },
         addedAt = addedAt,
         isWatched = isWatched,
         watchedAt = watchedAt,
@@ -157,7 +157,7 @@ class MovieRepositoryImpl @Inject constructor(
         budget = budget,
         revenue = revenue,
         productionCompaniesJson = productionCompanies.joinToString(","),
-        userListType = userListType?.let { com.cinetrack.data.local.entity.UserListType.valueOf(it.name) },
+        userListType = userListType?.let { domainType -> com.cinetrack.data.local.entity.UserListType.valueOf(domainType.name) },
         addedAt = addedAt,
         isWatched = isWatched,
         watchedAt = watchedAt,

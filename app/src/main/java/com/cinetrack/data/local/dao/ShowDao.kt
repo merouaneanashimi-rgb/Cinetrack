@@ -85,12 +85,6 @@ interface ShowDao {
     suspend fun isTracked(tmdbId: Int): Boolean
 
     @Query("SELECT * FROM shows WHERE userRating IS NOT NULL ORDER BY userRating DESC")
-    fun getRatedShows(): kotlinx.coroutines.flow.Flow<List<com.cinetrack.data.local.entity.ShowEntity>>
-
-    @Query("SELECT * FROM shows WHERE tmdbId = :tmdbId LIMIT 1")
-    suspend fun getByTmdbId(tmdbId: Int): com.cinetrack.data.local.entity.ShowEntity?
-
-    @Query("UPDATE shows SET userRating = :rating WHERE id = :showId")
-    suspend fun updateRating(showId: Long, rating: Double?)
+    fun getRatedShows(): Flow<List<ShowEntity>>
 
 }

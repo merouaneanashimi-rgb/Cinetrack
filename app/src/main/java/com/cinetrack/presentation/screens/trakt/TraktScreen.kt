@@ -221,7 +221,7 @@ private fun ConnectedContent(
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = (uiState.username?.firstOrNull() ?: "T").uppercaseChar().toString(),
+                            text = (uiState.username?.firstOrNull() ?: 'T').uppercaseChar().toString(),
                                 style = MaterialTheme.typography.headlineSmall,
                                 color = Color.White,
                                 fontWeight = FontWeight.Bold
