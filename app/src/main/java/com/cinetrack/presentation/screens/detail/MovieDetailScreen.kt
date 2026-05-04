@@ -56,8 +56,8 @@ class MovieDetailViewModel @Inject constructor(
                 _localId.value = localMovie.id
             } else {
                 val result = movieRepository.syncMovieFromApi(tmdbId)
-                if (result.isSuccess) {
-                    _localId.value = result.getOrNull()?.id
+                if (result is com.cinetrack.util.Result.Success) {
+                    _localId.value = result.data.id
                 }
             }
         }

@@ -44,8 +44,8 @@ class TvShowDetailViewModel @Inject constructor(
                 _localId.value = localShow.id
             } else {
                 val result = showRepository.syncShowFromApi(tmdbId)
-                if (result.isSuccess) {
-                    _localId.value = result.getOrNull()?.id
+                if (result is com.cinetrack.util.Result.Success) {
+                    _localId.value = result.data.id
                 }
             }
             _isLoading.value = false
