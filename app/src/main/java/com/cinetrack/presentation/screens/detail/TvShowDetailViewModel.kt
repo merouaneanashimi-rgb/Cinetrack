@@ -16,16 +16,19 @@ class TvShowDetailViewModel @Inject constructor(
     private val showRepository: ShowRepository
 ) : ViewModel() {
 
-    private val showId: Long = savedStateHandle.get<String>("showId")?.toLongOrNull() ?: 0L
+    private val tmdbId: Int = savedStateHandle.get<String>("showId")?.toIntOrNull() ?: 0
 
-    private val _show = MutableStateFlow<Show?>(null)
-    val show: StateFlow<Show?> = _show.asStateFlow()
+    private val _localId = MutableStateFlow<Long?>(null)
 
-    val seasons: StateFlow<List<Season>> = showRepository.getSeasonsByShow(showId)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    val show: StateFlow<Show?> = _localId.filterNotNull().flatMapLatest { id ->
+        showRepository.getShowById(id)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
-    val episodes: StateFlow<List<Episode>> = showRepository.getEpisodesBySeason(showId)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    val seasons: StateFlow<List<Season>> = _localId.filterNotNull().flatMapLatest { id ->
+        showRepository.getSeasonsByShow(id)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
@@ -34,19 +37,18 @@ class TvShowDetailViewModel @Inject constructor(
     val selectedSeason: StateFlow<Int?> = _selectedSeason.asStateFlow()
 
     init {
-        loadShow()
-    }
-
-    private fun loadShow() {
         viewModelScope.launch {
             _isLoading.value = true
-            showRepository.getShowById(showId).collect { s ->
-                _show.value = s
-                _isLoading.value = false
-                if (s == null) {
-                    // Try to sync from API if not in DB
+            val localShow = showRepository.getShowByTmdbId(tmdbId)
+            if (localShow != null) {
+                _localId.value = localShow.id
+            } else {
+                val result = showRepository.syncShowFromApi(tmdbId)
+                if (result.isSuccess) {
+                    _localId.value = result.getOrNull()?.id
                 }
             }
+            _isLoading.value = false
         }
     }
 
@@ -56,26 +58,30 @@ class TvShowDetailViewModel @Inject constructor(
 
     fun updateListType(listType: UserListType?) {
         viewModelScope.launch {
-            showRepository.updateShowListType(showId, listType)
+            val currentId = _localId.value ?: return@launch
+            showRepository.updateShowListType(currentId, listType)
         }
     }
 
     fun toggleFavorite() {
         viewModelScope.launch {
-            val current = _show.value ?: return@launch
-            showRepository.updateShowFavorite(showId, !current.isFavorite)
+            val currentId = _localId.value ?: return@launch
+            val current = show.value ?: return@launch
+            showRepository.updateShowFavorite(currentId, !current.isFavorite)
         }
     }
 
     fun rateShow(rating: Double) {
         viewModelScope.launch {
-            showRepository.updateShowRating(showId, rating)
+            val currentId = _localId.value ?: return@launch
+            showRepository.updateShowRating(currentId, rating)
         }
     }
 
     fun updateNotes(notes: String) {
         viewModelScope.launch {
-            showRepository.updateShowNotes(showId, notes)
+            val currentId = _localId.value ?: return@launch
+            showRepository.updateShowNotes(currentId, notes)
         }
     }
 
@@ -93,19 +99,22 @@ class TvShowDetailViewModel @Inject constructor(
 
     fun markUpToEpisodeWatched(seasonNumber: Int, episodeNumber: Int) {
         viewModelScope.launch {
-            showRepository.markUpToEpisodeWatched(showId, seasonNumber, episodeNumber)
+            val currentId = _localId.value ?: return@launch
+            showRepository.markUpToEpisodeWatched(currentId, seasonNumber, episodeNumber)
         }
     }
 
     fun markFromEpisodeWatched(seasonNumber: Int, episodeNumber: Int) {
         viewModelScope.launch {
-            showRepository.markFromEpisodeWatched(showId, seasonNumber, episodeNumber)
+            val currentId = _localId.value ?: return@launch
+            showRepository.markFromEpisodeWatched(currentId, seasonNumber, episodeNumber)
         }
     }
 
     fun markAllShowEpisodesWatched() {
         viewModelScope.launch {
-            showRepository.markAllShowEpisodesWatched(showId)
+            val currentId = _localId.value ?: return@launch
+            showRepository.markAllShowEpisodesWatched(currentId)
         }
     }
 
@@ -123,9 +132,11 @@ class TvShowDetailViewModel @Inject constructor(
 
     fun toggleNotify() {
         viewModelScope.launch {
-            val current = _show.value ?: return@launch
-            showRepository.toggleNotify(showId, !current.notifyEnabled)
+            val currentId = _localId.value ?: return@launch
+            val current = show.value ?: return@launch
+            showRepository.toggleNotify(currentId, !current.notifyEnabled)
         }
     }
+
     fun getEpisodesBySeason(seasonId: Long) = showRepository.getEpisodesBySeason(seasonId)
 }

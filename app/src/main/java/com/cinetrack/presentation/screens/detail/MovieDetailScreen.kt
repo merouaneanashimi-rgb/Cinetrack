@@ -40,35 +40,64 @@ class MovieDetailViewModel @Inject constructor(
     savedStateHandle: androidx.lifecycle.SavedStateHandle,
     val movieRepository: MovieRepository
 ) : androidx.lifecycle.ViewModel() {
-    private val movieId: Long = savedStateHandle.get<String>("movieId")?.toLongOrNull() ?: 0L
+    private val tmdbId: Int = savedStateHandle.get<String>("movieId")?.toIntOrNull() ?: 0
 
-    val movie: StateFlow<Movie?> = movieRepository.getMovieById(movieId)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+    private val _localId = MutableStateFlow<Long?>(null)
+
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    val movie: StateFlow<Movie?> = _localId.filterNotNull().flatMapLatest { id ->
+        movieRepository.getMovieById(id)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    init {
+        viewModelScope.launch {
+            val localMovie = movieRepository.getMovieByTmdbId(tmdbId)
+            if (localMovie != null) {
+                _localId.value = localMovie.id
+            } else {
+                val result = movieRepository.syncMovieFromApi(tmdbId)
+                if (result.isSuccess) {
+                    _localId.value = result.getOrNull()?.id
+                }
+            }
+        }
+    }
 
     fun updateListType(listType: UserListType?) {
-        viewModelScope.launch { movieRepository.updateMovieListType(movieId, listType) }
+        viewModelScope.launch { 
+            val currentId = _localId.value ?: return@launch
+            movieRepository.updateMovieListType(currentId, listType) 
+        }
     }
 
     fun toggleFavorite() {
         viewModelScope.launch {
+            val currentId = _localId.value ?: return@launch
             val current = movie.value ?: return@launch
-            movieRepository.updateMovieFavorite(movieId, !current.isFavorite)
+            movieRepository.updateMovieFavorite(currentId, !current.isFavorite)
         }
     }
 
     fun toggleWatched() {
         viewModelScope.launch {
+            val currentId = _localId.value ?: return@launch
             val current = movie.value ?: return@launch
-            movieRepository.updateMovieWatched(movieId, !current.isWatched)
+            movieRepository.updateMovieWatched(currentId, !current.isWatched)
         }
     }
 
     fun rateMovie(rating: Double) {
-        viewModelScope.launch { movieRepository.updateMovieRating(movieId, rating) }
+        viewModelScope.launch { 
+            val currentId = _localId.value ?: return@launch
+            movieRepository.updateMovieRating(currentId, rating) 
+        }
     }
 
     fun updateNotes(notes: String) {
-        viewModelScope.launch { movieRepository.updateMovieNotes(movieId, notes) }
+        viewModelScope.launch { 
+            val currentId = _localId.value ?: return@launch
+            movieRepository.updateMovieNotes(currentId, notes) 
+        }
     }
 }
 

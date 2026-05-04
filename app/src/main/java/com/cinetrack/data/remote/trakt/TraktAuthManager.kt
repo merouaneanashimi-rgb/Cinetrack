@@ -10,6 +10,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.*
 import javax.inject.Inject
 import javax.inject.Singleton
+import com.cinetrack.BuildConfig
 
 private val Context.traktDataStore: DataStore<Preferences> by preferencesDataStore(name = "trakt_auth")
 
@@ -19,8 +20,8 @@ class TraktAuthManager @Inject constructor(
     private val traktApiService: TraktApiService
 ) {
     companion object {
-        const val CLIENT_ID     = "1a3b2d4f5e6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2"
-        const val CLIENT_SECRET = "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2"
+        val CLIENT_ID     = BuildConfig.TRAKT_CLIENT_ID
+        val CLIENT_SECRET = BuildConfig.TRAKT_CLIENT_SECRET
         const val REDIRECT_URI  = "cinetrack://trakt/oauth"
         const val BASE_AUTH_URL = "https://trakt.tv/oauth/authorize"
         const val API_BASE_URL  = "https://api.trakt.tv/"

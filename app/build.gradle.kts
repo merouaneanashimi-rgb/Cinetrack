@@ -23,6 +23,8 @@ android {
         buildConfigField("String", "TMDB_API_KEY", "\"${getTmdbApiKey()}\"")
         buildConfigField("String", "TMDB_BASE_URL", "\"https://api.themoviedb.org/3/\"")
         buildConfigField("String", "TMDB_IMAGE_BASE_URL", "\"https://image.tmdb.org/t/p/\"")
+        buildConfigField("String", "TRAKT_CLIENT_ID", "\"${getTraktClientId()}\"")
+        buildConfigField("String", "TRAKT_CLIENT_SECRET", "\"${getTraktClientSecret()}\"")
 
         ksp {
             arg("room.schemaLocation", "$projectDir/schemas")
@@ -115,4 +117,16 @@ fun getTmdbApiKey(): String {
     return project.findProperty("TMDB_API_KEY") as String?
         ?: System.getenv("TMDB_API_KEY")
         ?: "c03b47cb2197344bb255a5e0176d11f0"
+}
+
+fun getTraktClientId(): String {
+    return project.findProperty("TRAKT_CLIENT_ID") as String?
+        ?: System.getenv("TRAKT_CLIENT_ID")
+        ?: ""
+}
+
+fun getTraktClientSecret(): String {
+    return project.findProperty("TRAKT_CLIENT_SECRET") as String?
+        ?: System.getenv("TRAKT_CLIENT_SECRET")
+        ?: ""
 }

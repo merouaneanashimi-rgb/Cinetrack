@@ -112,7 +112,7 @@ fun DiscoverScreen(
                 // Continue Watching
                 if (uiState.continueWatching.isNotEmpty()) {
                     item {
-                        SectionHeader(title = stringResource(R.string.continue_watching), onSeeAll = {})
+                        SectionHeader(title = stringResource(R.string.continue_watching))
                         LazyRow(
                             contentPadding = PaddingValues(horizontal = 16.dp),
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -181,7 +181,7 @@ private fun LazyListScope.carouselSection(
 ) {
     if (items.isNotEmpty()) {
         item {
-            SectionHeader(title = stringResource(titleRes), onSeeAll = {})
+            SectionHeader(title = stringResource(titleRes))
             LazyRow(
                 contentPadding = PaddingValues(horizontal = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -446,7 +446,7 @@ fun ContinueWatchingCard(
 @Composable
 fun SectionHeader(
     title: String,
-    onSeeAll: () -> Unit,
+    onSeeAll: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -460,8 +460,10 @@ fun SectionHeader(
             text = title,
             style = MaterialTheme.typography.titleMedium
         )
-        TextButton(onClick = onSeeAll) {
-            Text(stringResource(R.string.see_all))
+        if (onSeeAll != null) {
+            TextButton(onClick = onSeeAll) {
+                Text(stringResource(R.string.see_all))
+            }
         }
     }
 }
