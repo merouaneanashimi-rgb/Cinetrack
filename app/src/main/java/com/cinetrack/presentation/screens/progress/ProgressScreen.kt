@@ -31,6 +31,7 @@ import coil.request.ImageRequest
 import com.cinetrack.BuildConfig
 import com.cinetrack.R
 import com.cinetrack.domain.model.AirStatus
+import com.cinetrack.domain.model.toColor
 import com.cinetrack.domain.model.Episode
 import com.cinetrack.domain.model.Show
 import com.cinetrack.presentation.components.PullToRefreshBox

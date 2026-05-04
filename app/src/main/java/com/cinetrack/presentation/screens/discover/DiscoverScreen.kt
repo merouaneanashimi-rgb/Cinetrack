@@ -27,6 +27,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.foundation.lazy.LazyListScope
+import com.cinetrack.presentation.screens.discover.MediaItem
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.cinetrack.BuildConfig
@@ -170,6 +172,7 @@ fun DiscoverScreen(
 }
 
 @OptIn(ExperimentalFoundationApi::class)
+@androidx.compose.runtime.Composable
 private fun LazyListScope.carouselSection(
     title: String,
     items: List<MediaItem>,

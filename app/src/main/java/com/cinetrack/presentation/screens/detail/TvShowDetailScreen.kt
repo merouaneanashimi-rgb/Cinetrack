@@ -570,7 +570,7 @@ fun SeasonEpisodesList(
     onRateEpisode: (Long, Double?) -> Unit,
     viewModel: TvShowDetailViewModel = hiltViewModel()
 ) {
-    val episodes by viewModel.showRepository.getEpisodesBySeason(seasonId)
+    val episodes by viewModel.getEpisodesBySeason(seasonId)
         .collectAsState(initial = emptyList())
 
     Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
@@ -581,7 +581,7 @@ fun SeasonEpisodesList(
                 onRate = { onRateEpisode(episode.id, it) }
             )
             if (episode.id != episodes.lastOrNull()?.id) {
-                Divider(modifier = Modifier.padding(vertical = 4.dp))
+                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
             }
         }
     }

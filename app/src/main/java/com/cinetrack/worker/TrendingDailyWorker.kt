@@ -16,7 +16,7 @@ class TrendingDailyWorker @AssistedInject constructor(
     @Assisted context: Context,
     @Assisted params: WorkerParameters,
     private val api: TmdbApiService
-) : CoroutineWorker(applicationContext, params) {
+) : CoroutineWorker(context, params) {
 
     companion object {
         private const val WORK_NAME = "trending_daily_worker"

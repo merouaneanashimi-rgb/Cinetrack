@@ -127,4 +127,5 @@ class TvShowDetailViewModel @Inject constructor(
             showRepository.toggleNotify(showId, !current.notifyEnabled)
         }
     }
+    fun getEpisodesBySeason(seasonId: Long) = showRepository.getEpisodesBySeason(seasonId)
 }

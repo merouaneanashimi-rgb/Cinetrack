@@ -24,6 +24,8 @@ import com.cinetrack.domain.model.SearchResult
 import com.cinetrack.domain.repository.SearchRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 

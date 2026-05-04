@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import com.cinetrack.presentation.screens.trakt.TraktScreen
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -108,7 +110,11 @@ fun CineTrackNavigation(navController: NavHostController) {
                     }
                 )
             }
-            composable(Screen.Settings.route) {
+            
+        composable(Screen.Trakt.route) {
+            TraktScreen()
+        }
+        composable(Screen.Settings.route) {
                 SettingsScreen()
             }
             composable(Screen.MovieDetail.route) { backStackEntry ->
@@ -157,6 +163,23 @@ fun CineTrackNavigation(navController: NavHostController) {
                     },
                     onBackClick = { navController.popBackStack() }
                 )
+            }
+
+            composable(Screen.CustomLists.route) {
+                /* Custom Lists Screen - coming soon */
+                androidx.compose.foundation.layout.Box(modifier = androidx.compose.ui.Modifier.fillMaxSize())
+            }
+            composable(Screen.EpisodeCalendar.route) {
+                /* Episode Calendar Screen - coming soon */
+                androidx.compose.foundation.layout.Box(modifier = androidx.compose.ui.Modifier.fillMaxSize())
+            }
+            composable(Screen.NotificationSettings.route) {
+                /* Notification Settings Screen - coming soon */
+                androidx.compose.foundation.layout.Box(modifier = androidx.compose.ui.Modifier.fillMaxSize())
+            }
+            composable(Screen.YearInReview.route) {
+                /* Year In Review Screen - coming soon */
+                androidx.compose.foundation.layout.Box(modifier = androidx.compose.ui.Modifier.fillMaxSize())
             }
         }
     }

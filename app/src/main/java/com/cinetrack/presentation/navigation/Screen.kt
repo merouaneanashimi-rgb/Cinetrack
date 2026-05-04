@@ -21,6 +21,7 @@ sealed class Screen(val route: String) {
         fun createRoute(listId: Long) = "custom_list_detail/$listId"
     }
     data object EpisodeCalendar : Screen("episode_calendar")
+    data object Trakt : Screen("trakt")
     data object NotificationSettings : Screen("notification_settings")
     data object YearInReview : Screen("year_in_review")
 }

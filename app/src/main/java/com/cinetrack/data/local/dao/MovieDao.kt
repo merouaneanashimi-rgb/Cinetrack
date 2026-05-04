@@ -70,4 +70,11 @@ interface MovieDao {
 
     @Query("SELECT EXISTS(SELECT 1 FROM movies WHERE tmdbId = :tmdbId AND userListType IS NOT NULL)")
     suspend fun isTracked(tmdbId: Int): Boolean
+
+    @Query("SELECT * FROM movies WHERE userRating IS NOT NULL ORDER BY userRating DESC")
+    fun getRatedMovies(): Flow<List<MovieEntity>>
+
+    @Query("UPDATE movies SET isWatched = :watched, watchedAt = :watchedAt WHERE id = :movieId")
+    suspend fun markWatched(movieId: Long, watched: Boolean, watchedAt: Long?)
+
 }

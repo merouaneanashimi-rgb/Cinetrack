@@ -30,6 +30,7 @@
         <activity
             android:name=".presentation.MainActivity"
             android:exported="true"
+            android:launchMode="singleTask"
             android:theme="@style/Theme.CineTrack.Splash"
             android:windowSoftInputMode="adjustResize"
             android:configChanges="orientation|screenSize|smallestScreenSize">
@@ -47,6 +48,15 @@
                     android:host="movie" />
                 <data android:scheme="cinetrack"
                     android:host="person" />
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="cinetrack"
+                    android:host="trakt" />
             </intent-filter>
         </activity>
 

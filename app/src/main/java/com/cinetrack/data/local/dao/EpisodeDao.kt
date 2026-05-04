@@ -81,4 +81,14 @@ interface EpisodeDao {
 
     @Query("DELETE FROM episodes WHERE showId = :showId")
     suspend fun deleteByShow(showId: Long)
+
+    @androidx.room.Query("SELECT * FROM episodes WHERE isWatched = 1 ORDER BY watchedAt DESC")
+    fun getWatchedEpisodes(): kotlinx.coroutines.flow.Flow<List<com.cinetrack.data.local.entity.EpisodeEntity>>
+
+    @androidx.room.Query("SELECT * FROM episodes WHERE showId = :showId AND seasonNumber = :season AND episodeNumber = :episode LIMIT 1")
+    suspend fun getByShowSeasonEpisode(showId: Long, season: Int, episode: Int): com.cinetrack.data.local.entity.EpisodeEntity?
+
+    @androidx.room.Query("UPDATE episodes SET isWatched = :watched, watchedAt = :watchedAt WHERE id = :episodeId")
+    suspend fun markWatched(episodeId: Long, watched: Boolean, watchedAt: Long?)
+
 }

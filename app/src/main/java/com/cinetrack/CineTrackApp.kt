@@ -11,6 +11,7 @@ import com.cinetrack.worker.EpisodeCheckWorker
 import com.cinetrack.worker.MovieReleaseWorker
 import com.cinetrack.worker.StreakWorker
 import com.cinetrack.worker.TrendingDailyWorker
+import com.cinetrack.worker.TraktSyncWorker
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 
@@ -39,34 +40,30 @@ class CineTrackApp : Application(), Configuration.Provider {
                     "ch_episodes",
                     getString(R.string.notification_channel_episodes),
                     NotificationManager.IMPORTANCE_HIGH
-                ).apply {
-                    description = "Notifications for upcoming and airing episodes"
-                },
+                ).apply { description = "Notifications for upcoming and airing episodes" },
                 NotificationChannel(
                     "ch_movies",
                     getString(R.string.notification_channel_movies),
                     NotificationManager.IMPORTANCE_DEFAULT
-                ).apply {
-                    description = "Notifications for movie releases"
-                },
+                ).apply { description = "Notifications for movie releases" },
                 NotificationChannel(
                     "ch_reminders",
                     getString(R.string.notification_channel_reminders),
                     NotificationManager.IMPORTANCE_LOW
-                ).apply {
-                    description = "Gentle reminders about your watchlist"
-                },
+                ).apply { description = "Gentle reminders about your watchlist" },
                 NotificationChannel(
                     "ch_social",
                     getString(R.string.notification_channel_social),
                     NotificationManager.IMPORTANCE_LOW
-                ).apply {
-                    description = "Streak updates and motivational messages"
-                }
+                ).apply { description = "Streak updates and motivational messages" },
+                NotificationChannel(
+                    "ch_trakt",
+                    "Trakt Sync",
+                    NotificationManager.IMPORTANCE_LOW
+                ).apply { description = "Trakt.tv synchronization status" }
             )
-
-            val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.createNotificationChannels(channels)
+            val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            nm.createNotificationChannels(channels)
         }
     }
 
@@ -75,5 +72,6 @@ class CineTrackApp : Application(), Configuration.Provider {
         MovieReleaseWorker.schedule(this)
         StreakWorker.schedule(this)
         TrendingDailyWorker.schedule(this)
+        // Trakt sync scheduled only after user connects — see TraktViewModel
     }
 }

@@ -29,11 +29,14 @@ class ShowRepositoryImpl @Inject constructor(
     }
 
     override fun getShowsByListType(listType: UserListType): Flow<List<Show>> {
-        return showDao.getByListType(listType).map { list -> list.map { it.toDomainModel() } }
+        val entityListType = com.cinetrack.data.local.entity.UserListType.valueOf(listType.name)
+        return showDao.getByListType(entityListType).map { list -> list.map { it.toDomainModel() } }
     }
 
     override fun getShowsByListTypeAndAirStatus(listType: UserListType, airStatus: AirStatus): Flow<List<Show>> {
-        return showDao.getByListTypeAndAirStatus(listType, airStatus).map { list -> list.map { it.toDomainModel() } }
+        val eListType = com.cinetrack.data.local.entity.UserListType.valueOf(listType.name)
+        val eAirStatus = com.cinetrack.data.local.entity.AirStatus.valueOf(airStatus.name)
+        return showDao.getByListTypeAndAirStatus(eListType, eAirStatus).map { list -> list.map { it.toDomainModel() } }
     }
 
     override fun getWatchingShowsByNextEpisode(): Flow<List<Show>> {
@@ -58,7 +61,8 @@ class ShowRepositoryImpl @Inject constructor(
     }
 
     override suspend fun addShow(show: Show, listType: UserListType): Long {
-        val entity = show.toEntity().copy(userListType = listType, addedAt = System.currentTimeMillis())
+        val entityListType = com.cinetrack.data.local.entity.UserListType.valueOf(listType.name)
+        val entity = show.toEntity().copy(userListType = entityListType, addedAt = System.currentTimeMillis())
         val id = showDao.insert(entity)
         
         // Fetch and store seasons/episodes

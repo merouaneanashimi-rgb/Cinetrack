@@ -11,6 +11,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.background
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -107,7 +108,7 @@ fun SettingsScreen(
                 SettingsItem(
                     title = stringResource(R.string.adult_content),
                     subtitle = if (settings.adultContent) "Enabled" else "Disabled",
-                    icon = Icons.Default.Mature,
+                    icon = Icons.Default.Block,
                     trailing = {
                         Switch(
                             checked = settings.adultContent,

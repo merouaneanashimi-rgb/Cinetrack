@@ -216,4 +216,5 @@
     <!-- TMDB Attribution -->
     <string name="tmdb_attribution">This product uses the TMDB API but is not endorsed or certified by TMDB.</string>
     <string name="trakt_attribution">Data provided by Trakt.tv</string>
+    <string name="nav_trakt">Trakt</string>
 </resources>

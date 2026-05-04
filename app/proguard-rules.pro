@@ -75,3 +75,17 @@
 -keepattributes RuntimeInvisibleAnnotations
 -keepattributes RuntimeVisibleParameterAnnotations
 -keepattributes RuntimeInvisibleParameterAnnotations
+
+# Trakt DTOs - keep for Moshi serialization
+-keep class com.cinetrack.data.remote.trakt.** { *; }
+
+# Retrofit interfaces
+-keep interface com.cinetrack.data.remote.** { *; }
+-keep class com.cinetrack.data.remote.dto.** { *; }
+
+# WorkManager
+-keep class * extends androidx.work.Worker
+-keep class * extends androidx.work.CoroutineWorker
+-keep class * extends androidx.work.ListenableWorker {
+    public <init>(android.content.Context, androidx.work.WorkerParameters);
+}

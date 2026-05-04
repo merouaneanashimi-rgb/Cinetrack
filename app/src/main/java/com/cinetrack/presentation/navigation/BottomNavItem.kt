@@ -39,6 +39,12 @@ data class BottomNavItem(
                 unselectedIcon = Icons.Outlined.BarChart
             ),
             BottomNavItem(
+                route = Screen.Trakt.route,
+                labelResId = R.string.nav_trakt,
+                selectedIcon = Icons.Filled.Sync,
+                unselectedIcon = Icons.Outlined.Sync
+            ),
+            BottomNavItem(
                 route = Screen.Settings.route,
                 labelResId = R.string.nav_settings,
                 selectedIcon = Icons.Filled.Settings,

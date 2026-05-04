@@ -20,7 +20,7 @@ class StreakWorker @AssistedInject constructor(
     @Assisted context: Context,
     @Assisted params: WorkerParameters,
     private val episodeDao: EpisodeDao
-) : CoroutineWorker(applicationContext, params) {
+) : CoroutineWorker(context, params) {
 
     companion object {
         private const val WORK_NAME = "streak_worker"

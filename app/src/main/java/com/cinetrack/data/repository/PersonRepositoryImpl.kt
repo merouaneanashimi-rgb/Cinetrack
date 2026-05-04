@@ -9,7 +9,8 @@ import com.cinetrack.domain.repository.PersonRepository
 import com.cinetrack.util.Result
 import com.cinetrack.util.safeApiCall
 import kotlinx.coroutines.flow.*
-import kotlinx.serialization.json.Json
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -63,7 +64,13 @@ class PersonRepositoryImpl @Inject constructor(
         val person = personDao.getById(personId).first() ?: return
         val creditsResponse = api.getPersonCombinedCredits(person.tmdbId)
         val creditsJson = if (creditsResponse.isSuccessful) {
-            creditsResponse.body()?.let { Json.encodeToString(it) }
+            creditsResponse.body()?.let { dto ->
+            try {
+                val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
+                val adapter = moshi.adapter(com.cinetrack.data.remote.dto.CombinedCreditsDto::class.java)
+                adapter.toJson(dto)
+            } catch (e: Exception) { null }
+        }
         } else null
         personDao.updateFollowStatus(
             personId,
@@ -126,7 +133,9 @@ class PersonRepositoryImpl @Inject constructor(
 
         val previousJson = person.lastKnownCreditsJson ?: return emptyList()
         return try {
-            val previous = Json.decodeFromString<com.cinetrack.data.remote.dto.CombinedCreditsDto>(previousJson)
+            val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
+            val adapter = moshi.adapter(com.cinetrack.data.remote.dto.CombinedCreditsDto::class.java)
+            val previous = adapter.fromJson(previousJson) ?: return emptyList()
             val previousIds = mutableSetOf<Int>()
             previous.cast?.forEach { previousIds.add(it.id) }
             previous.crew?.forEach { previousIds.add(it.id) }
@@ -137,11 +146,11 @@ class PersonRepositoryImpl @Inject constructor(
             currentCredits.crew?.filter { it.id in newIds }?.forEach { newTitles.add(it.title ?: it.name ?: "") }
 
             if (newTitles.isNotEmpty()) {
-                personDao.updateCredits(personId, Json.encodeToString(currentCredits))
+                personDao.updateCredits(personId, try { val moshi2 = Moshi.Builder().add(KotlinJsonAdapterFactory()).build(); moshi2.adapter(com.cinetrack.data.remote.dto.CombinedCreditsDto::class.java).toJson(currentCredits) } catch(e:Exception) { "" })
             }
             newTitles
         } catch (e: Exception) {
-            personDao.updateCredits(personId, Json.encodeToString(currentCredits))
+            personDao.updateCredits(personId, try { val moshi2 = Moshi.Builder().add(KotlinJsonAdapterFactory()).build(); moshi2.adapter(com.cinetrack.data.remote.dto.CombinedCreditsDto::class.java).toJson(currentCredits) } catch(e:Exception) { "" })
             emptyList()
         }
     }

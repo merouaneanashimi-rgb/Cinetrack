@@ -27,6 +27,8 @@ import com.cinetrack.domain.model.Movie
 import com.cinetrack.domain.model.UserListType
 import com.cinetrack.presentation.components.PullToRefreshBox
 import com.cinetrack.presentation.screens.discover.MediaCard
+import com.cinetrack.presentation.screens.discover.MediaItem
+import androidx.compose.foundation.background
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
