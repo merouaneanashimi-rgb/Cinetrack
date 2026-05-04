@@ -1,5 +1,7 @@
 package com.cinetrack.presentation.screens.discover
 
+import androidx.annotation.StringRes
+
 import androidx.compose.animation.*
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -127,42 +129,42 @@ fun DiscoverScreen(
 
                 // Trending Today
                 carouselSection(
-                    title = stringResource(R.string.trending_today),
+                    titleRes = R.string.trending_today,
                     items = uiState.trendingToday,
                     onItemClick = { if (it.isMovie) onMovieClick(it.tmdbId.toLong()) else onShowClick(it.tmdbId.toLong()) }
                 )
 
                 // Popular Movies
                 carouselSection(
-                    title = stringResource(R.string.popular),
+                    titleRes = R.string.popular,
                     items = uiState.popularMovies,
                     onItemClick = { onMovieClick(it.tmdbId.toLong()) }
                 )
 
                 // Top Rated
                 carouselSection(
-                    title = stringResource(R.string.top_rated),
+                    titleRes = R.string.top_rated,
                     items = uiState.topRatedMovies,
                     onItemClick = { onMovieClick(it.tmdbId.toLong()) }
                 )
 
                 // Now Playing
                 carouselSection(
-                    title = stringResource(R.string.now_playing),
+                    titleRes = R.string.now_playing,
                     items = uiState.nowPlaying,
                     onItemClick = { onMovieClick(it.tmdbId.toLong()) }
                 )
 
                 // Upcoming Movies
                 carouselSection(
-                    title = stringResource(R.string.upcoming),
+                    titleRes = R.string.upcoming,
                     items = uiState.upcomingMovies,
                     onItemClick = { onMovieClick(it.tmdbId.toLong()) }
                 )
 
                 // Airing This Week
                 carouselSection(
-                    title = stringResource(R.string.airing_this_week),
+                    titleRes = R.string.airing_this_week,
                     items = uiState.airingThisWeek,
                     onItemClick = { onShowClick(it.tmdbId.toLong()) }
                 )
@@ -173,13 +175,13 @@ fun DiscoverScreen(
 
 @OptIn(ExperimentalFoundationApi::class)
 private fun LazyListScope.carouselSection(
-    title: String,
+    @StringRes titleRes: Int,
     items: List<MediaItem>,
     onItemClick: (MediaItem) -> Unit
 ) {
     if (items.isNotEmpty()) {
         item {
-            SectionHeader(title = title, onSeeAll = {})
+            SectionHeader(title = stringResource(titleRes), onSeeAll = {})
             LazyRow(
                 contentPadding = PaddingValues(horizontal = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
