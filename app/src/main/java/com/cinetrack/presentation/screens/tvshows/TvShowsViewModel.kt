@@ -59,25 +59,50 @@ class TvShowsViewModel @Inject constructor(
         _selectedSubTab.value = index
     }
 
-    fun loadDiscoverShows() {
+    val allTrackedShows: StateFlow<List<Show>> = showRepository.getAllTrackedShows()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    private var currentPage = 1
+    private var isLastPage = false
+
+    fun loadDiscoverShows(loadMore: Boolean = false) {
+        if (loadMore && (isLoading.value || isLastPage)) return
+        if (!loadMore) {
+            currentPage = 1
+            isLastPage = false
+        }
+
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                val response = api.getPopularTvShows()
-                val shows = response.body()?.results?.map { dto ->
-                    MediaItem(
-                        id = dto.id,
-                        tmdbId = dto.id,
-                        title = dto.name ?: dto.originalName ?: "",
-                        posterPath = dto.posterPath,
-                        backdropPath = dto.backdropPath,
-                        year = (dto.firstAirDate ?: "").take(4),
-                        rating = dto.voteAverage,
-                        genreIds = dto.genreIds ?: emptyList(),
-                        isMovie = false
-                    )
-                } ?: emptyList()
-                _discoverShows.value = shows
+                val response = api.getPopularTvShows(page = currentPage)
+                if (response.isSuccessful) {
+                    val pagedResponse = response.body()
+                    val newItems = pagedResponse?.results?.map { dto ->
+                        MediaItem(
+                            id = dto.id,
+                            tmdbId = dto.id,
+                            title = dto.name ?: dto.originalName ?: "",
+                            posterPath = dto.posterPath,
+                            backdropPath = dto.backdropPath,
+                            year = (dto.firstAirDate ?: "").take(4),
+                            rating = dto.voteAverage,
+                            genreIds = dto.genreIds ?: emptyList(),
+                            isMovie = false
+                        )
+                    } ?: emptyList()
+
+                    if (newItems.isEmpty()) {
+                        isLastPage = true
+                    } else {
+                        if (loadMore) {
+                            _discoverShows.value = _discoverShows.value + newItems
+                        } else {
+                            _discoverShows.value = newItems
+                        }
+                        currentPage++
+                    }
+                }
             } catch (e: Exception) {
             }
             _isLoading.value = false
@@ -108,14 +133,13 @@ class TvShowsViewModel @Inject constructor(
         }
     }
 
-    fun getFilteredWatchingShows(subTabIndex: Int): List<Show> {
-        val allShows = watchingShows.value
+    fun getFilteredWatchingShows(shows: List<Show>, subTabIndex: Int): List<Show> {
         return when (subTabIndex) {
-            1 -> allShows.filter { it.airStatus == AirStatus.RETURNING }
-            2 -> allShows.filter { it.airStatus == AirStatus.HIATUS }
-            3 -> allShows.filter { it.airStatus == AirStatus.ENDED || it.airStatus == AirStatus.CANCELED }
-            4 -> allShows.filter { it.airStatus == AirStatus.UPCOMING || it.airStatus == AirStatus.IN_PRODUCTION }
-            else -> allShows
+            1 -> shows.filter { it.airStatus == AirStatus.RETURNING }
+            2 -> shows.filter { it.airStatus == AirStatus.HIATUS }
+            3 -> shows.filter { it.airStatus == AirStatus.ENDED || it.airStatus == AirStatus.CANCELED }
+            4 -> shows.filter { it.airStatus == AirStatus.UPCOMING || it.airStatus == AirStatus.IN_PRODUCTION }
+            else -> shows
         }
     }
 }

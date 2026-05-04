@@ -37,7 +37,7 @@ import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import kotlinx.coroutines.flow.StateFlow
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 fun TvShowsScreen(
     onShowClick: (Long) -> Unit,
@@ -55,7 +55,8 @@ fun TvShowsScreen(
         R.string.tv_watched,
         R.string.tv_dropped,
         R.string.tv_plan_to_watch,
-        R.string.tv_favorites
+        R.string.tv_favorites,
+        R.string.shows_collection
     )
 
     val subTabs = listOf(
@@ -103,12 +104,24 @@ fun TvShowsScreen(
         Crossfade(targetState = selectedTab, label = "tv_tab") { tab ->
             when (tab) {
                 0 -> {
+                    val listState = androidx.compose.foundation.lazy.grid.rememberLazyGridState()
+                    
+                    LaunchedEffect(listState) {
+                        snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
+                            .collect { lastIndex ->
+                                if (lastIndex != null && lastIndex >= discoverShows.size - 4 && !isLoading) {
+                                    viewModel.loadDiscoverShows(loadMore = true)
+                                }
+                            }
+                    }
+
                     PullToRefreshBox(
                         isRefreshing = isLoading,
                         onRefresh = { viewModel.loadDiscoverShows() },
                         modifier = Modifier.padding(padding)
                     ) {
                         LazyVerticalGrid(
+                            state = listState,
                             columns = GridCells.Fixed(3),
                             contentPadding = PaddingValues(16.dp),
                             horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -148,6 +161,11 @@ fun TvShowsScreen(
                 )
                 6 -> ShowListGrid(
                     showsFlow = viewModel.favoriteShows,
+                    onShowClick = onShowClick,
+                    modifier = Modifier.padding(padding)
+                )
+                7 -> CollectionContent(
+                    viewModel = viewModel,
                     onShowClick = onShowClick,
                     modifier = Modifier.padding(padding)
                 )
@@ -193,8 +211,9 @@ fun WatchingContent(
     onShowClick: (Long) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val shows by remember(subTab) {
-        derivedStateOf { viewModel.getFilteredWatchingShows(subTab) }
+    val watchingShows by viewModel.watchingShows.collectAsState()
+    val shows = remember(watchingShows, subTab) {
+        viewModel.getFilteredWatchingShows(watchingShows, subTab)
     }
 
     if (shows.isEmpty()) {
@@ -211,9 +230,55 @@ fun WatchingContent(
             items(shows, key = { it.id }) { show ->
                 WatchingShowCard(
                     show = show,
-                    onClick = { onShowClick(show.id) },
+                    onClick = { onShowClick(show.tmdbId.toLong()) },
                     onNotifyToggle = { viewModel.toggleNotify(show.id, !show.notifyEnabled) }
                 )
+            }
+        }
+    }
+}
+
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+@Composable
+fun CollectionContent(
+    viewModel: TvShowsViewModel,
+    onShowClick: (Long) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val allShows by viewModel.allTrackedShows.collectAsState()
+    
+    if (allShows.isEmpty()) {
+        EmptyState(message = "Your collection is empty", modifier = modifier)
+    } else {
+        val groupedShows = remember(allShows) {
+            allShows.groupBy { it.airStatus }.toSortedMap(compareBy { it.ordinal })
+        }
+        
+        LazyColumn(
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = modifier.fillMaxSize()
+        ) {
+            groupedShows.forEach { (status, shows) ->
+                stickyHeader {
+                    Surface(
+                        color = MaterialTheme.colorScheme.background,
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+                    ) {
+                        Text(
+                            text = status.toDisplayName(),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+                items(shows, key = { it.id }) { show ->
+                    WatchingShowCard(
+                        show = show,
+                        onClick = { onShowClick(show.tmdbId.toLong()) },
+                        onNotifyToggle = { viewModel.toggleNotify(show.id, !show.notifyEnabled) }
+                    )
+                }
             }
         }
     }
@@ -370,7 +435,7 @@ fun ShowListGrid(
             modifier = modifier.fillMaxSize()
         ) {
             items(shows, key = { it.id }) { show ->
-                ShowGridCard(show = show, onClick = { onShowClick(show.id) })
+                ShowGridCard(show = show, onClick = { onShowClick(show.tmdbId.toLong()) })
             }
         }
     }
@@ -426,9 +491,9 @@ fun ShowGridCard(
 
 private fun calculateDaysUntil(dateString: String): Long? {
     return try {
-        val formatter = DateTimeFormatter.ISO_LOCAL_DATE
-        val airDate = LocalDate.parse(dateString, formatter)
-        ChronoUnit.DAYS.between(LocalDate.now(), airDate)
+        val formatter = java.time.format.DateTimeFormatter.ISO_LOCAL_DATE
+        val airDate = java.time.LocalDate.parse(dateString, formatter)
+        java.time.temporal.ChronoUnit.DAYS.between(java.time.LocalDate.now(), airDate)
     } catch (e: Exception) {
         null
     }
@@ -436,9 +501,9 @@ private fun calculateDaysUntil(dateString: String): Long? {
 
 private fun formatDate(dateString: String): String {
     return try {
-        val formatter = DateTimeFormatter.ISO_LOCAL_DATE
-        val date = LocalDate.parse(dateString, formatter)
-        date.format(DateTimeFormatter.ofPattern("MMM d, yyyy"))
+        val formatter = java.time.format.DateTimeFormatter.ISO_LOCAL_DATE
+        val date = java.time.LocalDate.parse(dateString, formatter)
+        date.format(java.time.format.DateTimeFormatter.ofPattern("MMM d, yyyy"))
     } catch (e: Exception) {
         dateString
     }

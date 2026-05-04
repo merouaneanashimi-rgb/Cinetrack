@@ -113,20 +113,33 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
 }
 
+fun getLocalProperty(key: String): String? {
+    val properties = java.util.Properties()
+    val localPropertiesFile = project.rootProject.file("local.properties")
+    if (localPropertiesFile.exists()) {
+        properties.load(java.io.FileInputStream(localPropertiesFile))
+        return properties.getProperty(key)
+    }
+    return null
+}
+
 fun getTmdbApiKey(): String {
-    return project.findProperty("TMDB_API_KEY") as String?
+    return getLocalProperty("TMDB_API_KEY")
+        ?: project.findProperty("TMDB_API_KEY") as String?
         ?: System.getenv("TMDB_API_KEY")
         ?: "c03b47cb2197344bb255a5e0176d11f0"
 }
 
 fun getTraktClientId(): String {
-    return project.findProperty("TRAKT_CLIENT_ID") as String?
+    return getLocalProperty("TRAKT_CLIENT_ID")
+        ?: project.findProperty("TRAKT_CLIENT_ID") as String?
         ?: System.getenv("TRAKT_CLIENT_ID")
         ?: ""
 }
 
 fun getTraktClientSecret(): String {
-    return project.findProperty("TRAKT_CLIENT_SECRET") as String?
+    return getLocalProperty("TRAKT_CLIENT_SECRET")
+        ?: project.findProperty("TRAKT_CLIENT_SECRET") as String?
         ?: System.getenv("TRAKT_CLIENT_SECRET")
         ?: ""
 }

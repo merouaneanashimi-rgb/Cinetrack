@@ -47,8 +47,7 @@ fun MoviesScreen(
         R.string.movies_discover,
         R.string.movies_watchlist,
         R.string.movies_watched,
-        R.string.movies_favorites,
-        R.string.movies_custom_lists
+        R.string.movies_favorites
     )
 
     Scaffold(
@@ -84,6 +83,7 @@ fun MoviesScreen(
                     onMovieClick = onMovieClick,
                     isLoading = isLoading,
                     onRefresh = { viewModel.loadDiscoverMovies() },
+                    onLoadMore = { viewModel.loadDiscoverMovies(loadMore = true) },
                     modifier = Modifier.padding(padding)
                 )
                 1 -> MovieGrid(
@@ -119,8 +119,22 @@ fun MovieGrid(
     onMovieClick: (Long) -> Unit,
     isLoading: Boolean,
     onRefresh: () -> Unit,
+    onLoadMore: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
+    val listState = androidx.compose.foundation.lazy.grid.rememberLazyGridState()
+    
+    if (onLoadMore != null) {
+        LaunchedEffect(listState) {
+            snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
+                .collect { lastIndex ->
+                    if (lastIndex != null && lastIndex >= items.size - 4 && !isLoading) {
+                        onLoadMore()
+                    }
+                }
+        }
+    }
+
     PullToRefreshBox(
         isRefreshing = isLoading,
         onRefresh = onRefresh,
@@ -130,16 +144,17 @@ fun MovieGrid(
             EmptyState(message = "No movies found")
         } else {
             LazyVerticalGrid(
+                state = listState,
                 columns = GridCells.Fixed(3),
                 contentPadding = PaddingValues(16.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier.fillMaxSize()
             ) {
-                items(items, key = { it.id }) { movie ->
+                items(items, key = { "${it.id}_${it.tmdbId}" }) { movie ->
                     MovieGridCard(
                         movie = movie,
-                        onClick = { onMovieClick(movie.id) }
+                        onClick = { onMovieClick(movie.tmdbId.toLong()) }
                     )
                 }
             }

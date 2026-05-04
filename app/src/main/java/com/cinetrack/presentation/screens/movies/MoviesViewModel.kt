@@ -44,25 +44,47 @@ class MoviesViewModel @Inject constructor(
         _selectedTab.value = index
     }
 
-    fun loadDiscoverMovies() {
+    private var currentPage = 1
+    private var isLastPage = false
+
+    fun loadDiscoverMovies(loadMore: Boolean = false) {
+        if (loadMore && (isLoading.value || isLastPage)) return
+        if (!loadMore) {
+            currentPage = 1
+            isLastPage = false
+        }
+
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                val response = api.getPopularMovies()
-                val movies = response.body()?.results?.map { dto ->
-                    MediaItem(
-                        id = dto.id,
-                        tmdbId = dto.id,
-                        title = dto.title ?: dto.name ?: "",
-                        posterPath = dto.posterPath,
-                        backdropPath = dto.backdropPath,
-                        year = (dto.releaseDate ?: dto.firstAirDate ?: "").take(4),
-                        rating = dto.voteAverage,
-                        genreIds = dto.genreIds ?: emptyList(),
-                        isMovie = true
-                    )
-                } ?: emptyList()
-                _discoverMovies.value = movies
+                val response = api.getPopularMovies(page = currentPage)
+                if (response.isSuccessful) {
+                    val pagedResponse = response.body()
+                    val newItems = pagedResponse?.results?.map { dto ->
+                        MediaItem(
+                            id = dto.id,
+                            tmdbId = dto.id,
+                            title = dto.title ?: dto.name ?: "",
+                            posterPath = dto.posterPath,
+                            backdropPath = dto.backdropPath,
+                            year = (dto.releaseDate ?: dto.firstAirDate ?: "").take(4),
+                            rating = dto.voteAverage,
+                            genreIds = dto.genreIds ?: emptyList(),
+                            isMovie = true
+                        )
+                    } ?: emptyList()
+
+                    if (newItems.isEmpty()) {
+                        isLastPage = true
+                    } else {
+                        if (loadMore) {
+                            _discoverMovies.value = _discoverMovies.value + newItems
+                        } else {
+                            _discoverMovies.value = newItems
+                        }
+                        currentPage++
+                    }
+                }
             } catch (e: Exception) {
                 // Error handling
             }

@@ -62,6 +62,7 @@
     <string name="tv_dropped">Dropped</string>
     <string name="tv_plan_to_watch">Plan to Watch</string>
     <string name="tv_favorites">Favorites</string>
+    <string name="shows_collection">Collection</string>
 
     <!-- Air Status -->
     <string name="status_returning">AIRING</string>
