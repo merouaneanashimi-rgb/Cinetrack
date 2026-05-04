@@ -3,6 +3,7 @@ package com.cinetrack.presentation.screens.tvshows
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.cinetrack.data.remote.api.TmdbApiService
+import com.cinetrack.data.remote.dto.*
 import com.cinetrack.domain.model.*
 import com.cinetrack.domain.repository.ShowRepository
 import com.cinetrack.presentation.screens.discover.MediaItem
@@ -16,6 +17,18 @@ class TvShowsViewModel @Inject constructor(
     private val showRepository: ShowRepository,
     private val api: TmdbApiService
 ) : ViewModel() {
+
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
+    private val _filterState = MutableStateFlow(MediaFilterState())
+    val filterState: StateFlow<MediaFilterState> = _filterState.asStateFlow()
+
+    private val _collectionSortState = MutableStateFlow(CollectionSortOrder.ADDED_DESC)
+    val collectionSortState: StateFlow<CollectionSortOrder> = _collectionSortState.asStateFlow()
+
+    private val _genres = MutableStateFlow<List<Genre>>(emptyList())
+    val genres: StateFlow<List<Genre>> = _genres.asStateFlow()
 
     private val _selectedTab = MutableStateFlow(0)
     val selectedTab: StateFlow<Int> = _selectedTab.asStateFlow()
@@ -66,24 +79,12 @@ class TvShowsViewModel @Inject constructor(
         return when (order) {
             CollectionSortOrder.ADDED_DESC -> shows.sortedByDescending { it.id }
             CollectionSortOrder.ADDED_ASC -> shows.sortedBy { it.id }
-            CollectionSortOrder.ALPHABETICAL_ASC -> shows.sortedBy { it.name }
-            CollectionSortOrder.ALPHABETICAL_DESC -> shows.sortedByDescending { it.name }
+            CollectionSortOrder.ALPHABETICAL_ASC -> shows.sortedBy { it.title }
+            CollectionSortOrder.ALPHABETICAL_DESC -> shows.sortedByDescending { it.title }
             CollectionSortOrder.RELEASE_DATE_DESC -> shows.sortedByDescending { it.firstAirDate }
             CollectionSortOrder.RATING_DESC -> shows.sortedByDescending { it.voteAverage }
         }
     }
-
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
-
-    private val _filterState = MutableStateFlow(MediaFilterState())
-    val filterState: StateFlow<MediaFilterState> = _filterState.asStateFlow()
-
-    private val _collectionSortState = MutableStateFlow(CollectionSortOrder.ADDED_DESC)
-    val collectionSortState: StateFlow<CollectionSortOrder> = _collectionSortState.asStateFlow()
-
-    private val _genres = MutableStateFlow<List<Genre>>(emptyList())
-    val genres: StateFlow<List<Genre>> = _genres.asStateFlow()
 
     init {
         fetchGenres()

@@ -3,6 +3,7 @@ package com.cinetrack.presentation.screens.movies
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.cinetrack.data.remote.api.TmdbApiService
+import com.cinetrack.data.remote.dto.*
 import com.cinetrack.domain.model.*
 import com.cinetrack.presentation.screens.discover.MediaItem
 import com.cinetrack.domain.repository.MovieRepository
@@ -17,6 +18,18 @@ class MoviesViewModel @Inject constructor(
     private val movieRepository: MovieRepository,
     private val api: TmdbApiService
 ) : ViewModel() {
+
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
+    private val _filterState = MutableStateFlow(MediaFilterState())
+    val filterState: StateFlow<MediaFilterState> = _filterState.asStateFlow()
+
+    private val _collectionSortState = MutableStateFlow(CollectionSortOrder.ADDED_DESC)
+    val collectionSortState: StateFlow<CollectionSortOrder> = _collectionSortState.asStateFlow()
+
+    private val _genres = MutableStateFlow<List<Genre>>(emptyList())
+    val genres: StateFlow<List<Genre>> = _genres.asStateFlow()
 
     private val _selectedTab = MutableStateFlow(0)
     val selectedTab: StateFlow<Int> = _selectedTab.asStateFlow()
@@ -52,18 +65,6 @@ class MoviesViewModel @Inject constructor(
             CollectionSortOrder.RATING_DESC -> movies.sortedByDescending { it.voteAverage }
         }
     }
-
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
-
-    private val _filterState = MutableStateFlow(MediaFilterState())
-    val filterState: StateFlow<MediaFilterState> = _filterState.asStateFlow()
-
-    private val _collectionSortState = MutableStateFlow(CollectionSortOrder.ADDED_DESC)
-    val collectionSortState: StateFlow<CollectionSortOrder> = _collectionSortState.asStateFlow()
-
-    private val _genres = MutableStateFlow<List<Genre>>(emptyList())
-    val genres: StateFlow<List<Genre>> = _genres.asStateFlow()
 
     init {
         fetchGenres()

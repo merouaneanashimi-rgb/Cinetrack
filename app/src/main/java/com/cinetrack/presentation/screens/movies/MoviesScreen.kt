@@ -25,6 +25,7 @@ import com.cinetrack.BuildConfig
 import com.cinetrack.R
 import com.cinetrack.domain.model.Movie
 import com.cinetrack.domain.model.UserListType
+import com.cinetrack.presentation.components.FilterSortBottomSheet
 import com.cinetrack.presentation.components.PullToRefreshBox
 import com.cinetrack.presentation.screens.discover.MediaCard
 import com.cinetrack.presentation.screens.discover.MediaItem
@@ -128,11 +129,11 @@ fun MoviesScreen(
             FilterSortBottomSheet(
                 onDismiss = { showFilterSheet = false },
                 filterState = filterState,
-                onFilterChange = { viewModel.updateFilter(it) },
+                onFilterChange = { state -> viewModel.updateFilter(state) },
                 availableGenres = genres,
                 isCollection = selectedTab != 0,
                 collectionSortOrder = collectionSortOrder,
-                onSortChange = { viewModel.updateSortOrder(it) }
+                onSortChange = { order -> viewModel.updateSortOrder(order) }
             )
         }
     }
