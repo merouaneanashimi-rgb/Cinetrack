@@ -47,6 +47,11 @@ fun TvShowsScreen(
     val selectedSubTab by viewModel.selectedSubTab.collectAsState()
     val discoverShows by viewModel.discoverShows.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val filterState by viewModel.filterState.collectAsState()
+    val collectionSortOrder by viewModel.collectionSortState.collectAsState()
+    val genres by viewModel.genres.collectAsState()
+
+    var showFilterSheet by remember { mutableStateOf(false) }
 
     val mainTabs = listOf(
         R.string.tv_discover,
@@ -72,6 +77,14 @@ fun TvShowsScreen(
             Column {
                 TopAppBar(
                     title = { Text(stringResource(R.string.nav_tv_shows)) },
+                    actions = {
+                        IconButton(onClick = { showFilterSheet = true }) {
+                            Icon(
+                                imageVector = androidx.compose.material.icons.Icons.Default.List,
+                                contentDescription = stringResource(R.string.filter)
+                            )
+                        }
+                    },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.background
                     )
@@ -171,6 +184,18 @@ fun TvShowsScreen(
                 )
                 else -> EmptyState(message = stringResource(R.string.empty_state_title))
             }
+        }
+
+        if (showFilterSheet) {
+            FilterSortBottomSheet(
+                onDismiss = { showFilterSheet = false },
+                filterState = filterState,
+                onFilterChange = { viewModel.updateFilter(it) },
+                availableGenres = genres,
+                isCollection = selectedTab != 0,
+                collectionSortOrder = collectionSortOrder,
+                onSortChange = { viewModel.updateSortOrder(it) }
+            )
         }
     }
 }

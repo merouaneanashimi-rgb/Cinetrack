@@ -46,6 +46,8 @@ fun DiscoverScreen(
     onMovieClick: (Long) -> Unit,
     onShowClick: (Long) -> Unit,
     onSearchClick: () -> Unit,
+    onSeeAllMoviesClick: () -> Unit,
+    onSeeAllShowsClick: () -> Unit,
     viewModel: DiscoverViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -131,42 +133,48 @@ fun DiscoverScreen(
                 carouselSection(
                     titleRes = R.string.trending_today,
                     items = uiState.trendingToday,
-                    onItemClick = { if (it.isMovie) onMovieClick(it.tmdbId.toLong()) else onShowClick(it.tmdbId.toLong()) }
+                    onItemClick = { if (it.isMovie) onMovieClick(it.tmdbId.toLong()) else onShowClick(it.tmdbId.toLong()) },
+                    onSeeAllClick = { /* Could navigate to a trending screen if needed */ }
                 )
 
                 // Popular Movies
                 carouselSection(
                     titleRes = R.string.popular,
                     items = uiState.popularMovies,
-                    onItemClick = { onMovieClick(it.tmdbId.toLong()) }
+                    onItemClick = { onMovieClick(it.tmdbId.toLong()) },
+                    onSeeAllClick = onSeeAllMoviesClick
                 )
 
                 // Top Rated
                 carouselSection(
                     titleRes = R.string.top_rated,
                     items = uiState.topRatedMovies,
-                    onItemClick = { onMovieClick(it.tmdbId.toLong()) }
+                    onItemClick = { onMovieClick(it.tmdbId.toLong()) },
+                    onSeeAllClick = onSeeAllMoviesClick
                 )
 
                 // Now Playing
                 carouselSection(
                     titleRes = R.string.now_playing,
                     items = uiState.nowPlaying,
-                    onItemClick = { onMovieClick(it.tmdbId.toLong()) }
+                    onItemClick = { onMovieClick(it.tmdbId.toLong()) },
+                    onSeeAllClick = onSeeAllMoviesClick
                 )
 
                 // Upcoming Movies
                 carouselSection(
                     titleRes = R.string.upcoming,
                     items = uiState.upcomingMovies,
-                    onItemClick = { onMovieClick(it.tmdbId.toLong()) }
+                    onItemClick = { onMovieClick(it.tmdbId.toLong()) },
+                    onSeeAllClick = onSeeAllMoviesClick
                 )
 
                 // Airing This Week
                 carouselSection(
                     titleRes = R.string.airing_this_week,
                     items = uiState.airingThisWeek,
-                    onItemClick = { onShowClick(it.tmdbId.toLong()) }
+                    onItemClick = { onShowClick(it.tmdbId.toLong()) },
+                    onSeeAllClick = onSeeAllShowsClick
                 )
             }
         }
@@ -177,11 +185,15 @@ fun DiscoverScreen(
 private fun LazyListScope.carouselSection(
     @StringRes titleRes: Int,
     items: List<MediaItem>,
-    onItemClick: (MediaItem) -> Unit
+    onItemClick: (MediaItem) -> Unit,
+    onSeeAllClick: (() -> Unit)? = null
 ) {
     if (items.isNotEmpty()) {
         item {
-            SectionHeader(title = stringResource(titleRes))
+            SectionHeader(
+                title = stringResource(titleRes),
+                onSeeAll = onSeeAllClick
+            )
             LazyRow(
                 contentPadding = PaddingValues(horizontal = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)

@@ -85,6 +85,12 @@ fun CineTrackNavigation(navController: NavHostController) {
                     },
                     onSearchClick = {
                         navController.navigate(Screen.Search.route)
+                    },
+                    onSeeAllMoviesClick = {
+                        navController.navigate(Screen.Movies.route)
+                    },
+                    onSeeAllShowsClick = {
+                        navController.navigate(Screen.TvShows.route)
                     }
                 )
             }

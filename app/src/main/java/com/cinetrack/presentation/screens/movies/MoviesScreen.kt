@@ -42,6 +42,11 @@ fun MoviesScreen(
     val watchedMovies by viewModel.watchedMovies.collectAsState()
     val favoriteMovies by viewModel.favoriteMovies.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val filterState by viewModel.filterState.collectAsState()
+    val collectionSortOrder by viewModel.collectionSortState.collectAsState()
+    val genres by viewModel.genres.collectAsState()
+
+    var showFilterSheet by remember { mutableStateOf(false) }
 
     val tabs = listOf(
         R.string.movies_discover,
@@ -55,6 +60,14 @@ fun MoviesScreen(
             Column {
                 TopAppBar(
                     title = { Text(stringResource(R.string.nav_movies)) },
+                    actions = {
+                        IconButton(onClick = { showFilterSheet = true }) {
+                            Icon(
+                                imageVector = androidx.compose.material.icons.Icons.Default.List,
+                                contentDescription = stringResource(R.string.filter)
+                            )
+                        }
+                    },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.background
                     )
@@ -109,6 +122,18 @@ fun MoviesScreen(
                 )
                 else -> EmptyState(message = stringResource(R.string.empty_state_title))
             }
+        }
+
+        if (showFilterSheet) {
+            FilterSortBottomSheet(
+                onDismiss = { showFilterSheet = false },
+                filterState = filterState,
+                onFilterChange = { viewModel.updateFilter(it) },
+                availableGenres = genres,
+                isCollection = selectedTab != 0,
+                collectionSortOrder = collectionSortOrder,
+                onSortChange = { viewModel.updateSortOrder(it) }
+            )
         }
     }
 }

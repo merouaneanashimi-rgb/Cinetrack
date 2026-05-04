@@ -26,29 +26,88 @@ class TvShowsViewModel @Inject constructor(
     private val _discoverShows = MutableStateFlow<List<MediaItem>>(emptyList())
     val discoverShows: StateFlow<List<MediaItem>> = _discoverShows.asStateFlow()
 
-    val watchingShows: StateFlow<List<Show>> = showRepository.getShowsByListType(UserListType.WATCHING)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    val watchingShows: StateFlow<List<Show>> = combine(
+        showRepository.getShowsByListType(UserListType.WATCHING),
+        collectionSortState
+    ) { shows, sortOrder -> sortShows(shows, sortOrder) }
+    .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val watchlistShows: StateFlow<List<Show>> = showRepository.getShowsByListType(UserListType.WATCHLIST)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    val watchlistShows: StateFlow<List<Show>> = combine(
+        showRepository.getShowsByListType(UserListType.WATCHLIST),
+        collectionSortState
+    ) { shows, sortOrder -> sortShows(shows, sortOrder) }
+    .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val watchedShows: StateFlow<List<Show>> = showRepository.getShowsByListType(UserListType.WATCHED)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    val watchedShows: StateFlow<List<Show>> = combine(
+        showRepository.getShowsByListType(UserListType.WATCHED),
+        collectionSortState
+    ) { shows, sortOrder -> sortShows(shows, sortOrder) }
+    .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val droppedShows: StateFlow<List<Show>> = showRepository.getShowsByListType(UserListType.DROPPED)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    val droppedShows: StateFlow<List<Show>> = combine(
+        showRepository.getShowsByListType(UserListType.DROPPED),
+        collectionSortState
+    ) { shows, sortOrder -> sortShows(shows, sortOrder) }
+    .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val planToWatchShows: StateFlow<List<Show>> = showRepository.getShowsByListType(UserListType.PLAN_TO_WATCH)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    val planToWatchShows: StateFlow<List<Show>> = combine(
+        showRepository.getShowsByListType(UserListType.PLAN_TO_WATCH),
+        collectionSortState
+    ) { shows, sortOrder -> sortShows(shows, sortOrder) }
+    .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val favoriteShows: StateFlow<List<Show>> = showRepository.getFavoriteShows()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    val favoriteShows: StateFlow<List<Show>> = combine(
+        showRepository.getFavoriteShows(),
+        collectionSortState
+    ) { shows, sortOrder -> sortShows(shows, sortOrder) }
+    .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    private fun sortShows(shows: List<Show>, order: CollectionSortOrder): List<Show> {
+        return when (order) {
+            CollectionSortOrder.ADDED_DESC -> shows.sortedByDescending { it.id }
+            CollectionSortOrder.ADDED_ASC -> shows.sortedBy { it.id }
+            CollectionSortOrder.ALPHABETICAL_ASC -> shows.sortedBy { it.name }
+            CollectionSortOrder.ALPHABETICAL_DESC -> shows.sortedByDescending { it.name }
+            CollectionSortOrder.RELEASE_DATE_DESC -> shows.sortedByDescending { it.firstAirDate }
+            CollectionSortOrder.RATING_DESC -> shows.sortedByDescending { it.voteAverage }
+        }
+    }
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+    private val _filterState = MutableStateFlow(MediaFilterState())
+    val filterState: StateFlow<MediaFilterState> = _filterState.asStateFlow()
+
+    private val _collectionSortState = MutableStateFlow(CollectionSortOrder.ADDED_DESC)
+    val collectionSortState: StateFlow<CollectionSortOrder> = _collectionSortState.asStateFlow()
+
+    private val _genres = MutableStateFlow<List<Genre>>(emptyList())
+    val genres: StateFlow<List<Genre>> = _genres.asStateFlow()
+
     init {
+        fetchGenres()
         loadDiscoverShows()
+    }
+
+    private fun fetchGenres() {
+        viewModelScope.launch {
+            try {
+                val response = api.getTvGenres()
+                if (response.isSuccessful) {
+                    _genres.value = response.body()?.genres?.map { Genre(it.id, it.name) } ?: emptyList()
+                }
+            } catch (e: Exception) {}
+        }
+    }
+
+    fun updateFilter(newState: MediaFilterState) {
+        _filterState.value = newState
+        loadDiscoverShows(loadMore = false)
+    }
+
+    fun updateSortOrder(newOrder: CollectionSortOrder) {
+        _collectionSortState.value = newOrder
     }
 
     fun selectTab(index: Int) {
@@ -59,8 +118,11 @@ class TvShowsViewModel @Inject constructor(
         _selectedSubTab.value = index
     }
 
-    val allTrackedShows: StateFlow<List<Show>> = showRepository.getAllTrackedShows()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    val allTrackedShows: StateFlow<List<Show>> = combine(
+        showRepository.getAllTrackedShows(),
+        collectionSortState
+    ) { shows, sortOrder -> sortShows(shows, sortOrder) }
+    .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private var currentPage = 1
     private var isLastPage = false
@@ -75,7 +137,24 @@ class TvShowsViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                val response = api.getPopularTvShows(page = currentPage)
+                val params = mutableMapOf<String, String>()
+                val filter = _filterState.value
+                
+                params["sort_by"] = filter.sortBy
+                if (filter.genres.isNotEmpty()) {
+                    params["with_genres"] = filter.genres.joinToString(",")
+                }
+                filter.voteAverageGte?.let { params["vote_average.gte"] = it.toString() }
+                filter.runtimeGte?.let { params["with_runtime.gte"] = it.toString() }
+                filter.releaseDateGte?.let { params["first_air_date.gte"] = it }
+
+                val isFiltering = filter != MediaFilterState()
+
+                val response = if (isFiltering) {
+                    api.discoverTvShows(params, page = currentPage)
+                } else {
+                    api.getPopularTvShows(page = currentPage)
+                }
                 if (response.isSuccessful) {
                     val pagedResponse = response.body()
                     val newItems = pagedResponse?.results?.map { dto ->
