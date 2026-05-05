@@ -51,7 +51,7 @@ class DiscoverViewModel @Inject constructor(
                     backdropPath = item.backdropPath,
                     firstAirDate = item.year,
                     voteAverage = item.rating,
-                    genres = item.genreIds.map { it.toString() } // Simplification
+                    genreIds = item.genreIds
                 )
                 showRepository.addShow(show, UserListType.WATCHLIST)
             }

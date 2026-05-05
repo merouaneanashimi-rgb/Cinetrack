@@ -17,6 +17,7 @@ data class Show(
     val nextEpisodeSeason: Int? = null,
     val nextEpisodeTitle: String? = null,
     val genres: List<String> = emptyList(),
+    val genreIds: List<Int> = emptyList(),
     val networks: List<String> = emptyList(),
     val voteAverage: Double = 0.0,
     val voteCount: Int = 0,

@@ -149,7 +149,7 @@ private fun Movie.toMediaItem() = com.cinetrack.presentation.screens.discover.Me
     title = title,
     posterPath = posterPath,
     backdropPath = backdropPath,
-    year = if (releaseDate.length >= 4) releaseDate.take(4) else "",
+    year = releaseDate?.let { if (it.length >= 4) it.take(4) else it } ?: "",
     rating = voteAverage,
     genreIds = genreIds,
     isMovie = true
