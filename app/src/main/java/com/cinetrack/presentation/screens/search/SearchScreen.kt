@@ -17,6 +17,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.cinetrack.presentation.components.FilterSortBottomSheet
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.cinetrack.BuildConfig
@@ -31,13 +32,74 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SearchViewModel @Inject constructor(
-    private val searchRepository: SearchRepository
+    private val searchRepository: SearchRepository,
+    private val movieRepository: com.cinetrack.domain.repository.MovieRepository,
+    private val showRepository: com.cinetrack.domain.repository.ShowRepository
 ) : androidx.lifecycle.ViewModel() {
     private val _query = MutableStateFlow("")
     val query: StateFlow<String> = _query.asStateFlow()
 
     private val _results = MutableStateFlow<List<SearchResult>>(emptyList())
-    val results: StateFlow<List<SearchResult>> = _results.asStateFlow()
+    
+    private val _filterState = MutableStateFlow(com.cinetrack.domain.model.MediaFilterState())
+    val filterState: StateFlow<com.cinetrack.domain.model.MediaFilterState> = _filterState.asStateFlow()
+
+    private val _sortOrder = MutableStateFlow(com.cinetrack.domain.model.CollectionSortOrder.ALPHABETICAL_ASC)
+    val sortOrder: StateFlow<com.cinetrack.domain.model.CollectionSortOrder> = _sortOrder.asStateFlow()
+
+    val results: StateFlow<List<SearchResult>> = combine(_results, _filterState, _sortOrder) { rawResults, filter, sort ->
+        rawResults.filter { result ->
+            when (result) {
+                is SearchResult.MovieResult -> {
+                    (filter.voteAverageGte == null || result.voteAverage >= filter.voteAverageGte)
+                }
+                is SearchResult.ShowResult -> {
+                    (filter.voteAverageGte == null || result.voteAverage >= filter.voteAverageGte)
+                }
+                else -> true
+            }
+        }.sortedWith { a, b ->
+            val titleA = when(a) { is SearchResult.MovieResult -> a.title; is SearchResult.ShowResult -> a.title; is SearchResult.PersonResult -> a.name }
+            val titleB = when(b) { is SearchResult.MovieResult -> b.title; is SearchResult.ShowResult -> b.title; is SearchResult.PersonResult -> b.name }
+            if (sort == com.cinetrack.domain.model.CollectionSortOrder.ALPHABETICAL_DESC) titleB.compareTo(titleA) else titleA.compareTo(titleB)
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun updateFilter(newState: com.cinetrack.domain.model.MediaFilterState) {
+        _filterState.value = newState
+    }
+
+    fun updateSortOrder(newOrder: com.cinetrack.domain.model.CollectionSortOrder) {
+        _sortOrder.value = newOrder
+    }
+
+    fun addToWatchlist(result: SearchResult) {
+        viewModelScope.launch {
+            when (result) {
+                is SearchResult.MovieResult -> {
+                    val movie = com.cinetrack.domain.model.Movie(
+                        tmdbId = result.id,
+                        title = result.title,
+                        posterPath = result.posterPath,
+                        releaseDate = result.releaseDate ?: "",
+                        voteAverage = result.voteAverage
+                    )
+                    movieRepository.addMovie(movie, com.cinetrack.domain.model.UserListType.WATCHLIST)
+                }
+                is SearchResult.ShowResult -> {
+                    val show = com.cinetrack.domain.model.Show(
+                        tmdbId = result.id,
+                        title = result.title,
+                        posterPath = result.posterPath,
+                        firstAirDate = result.firstAirDate ?: "",
+                        voteAverage = result.voteAverage
+                    )
+                    showRepository.addShow(show, com.cinetrack.domain.model.UserListType.WATCHLIST)
+                }
+                else -> {}
+            }
+        }
+    }
 
     val recentSearches: StateFlow<List<String>> = searchRepository.getRecentSearches()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -112,6 +174,10 @@ fun SearchScreen(
     val recentSearches by viewModel.recentSearches.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val selectedTab by viewModel.selectedTab.collectAsState()
+    val filterState by viewModel.filterState.collectAsState()
+    val sortOrder by viewModel.sortOrder.collectAsState()
+    
+    var showFilterSheet by remember { mutableStateOf(false) }
     val tabs = listOf("All", "Movies", "Shows", "People")
 
     Scaffold(
@@ -142,6 +208,11 @@ fun SearchScreen(
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { showFilterSheet = true }) {
+                        Icon(Icons.Default.FilterList, contentDescription = "Filter")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -212,11 +283,24 @@ fun SearchScreen(
                                     is SearchResult.ShowResult -> onShowClick(result.id.toLong())
                                     is SearchResult.PersonResult -> onPersonClick(result.id.toLong())
                                 }
-                            }
+                            },
+                            onAddClick = { viewModel.addToWatchlist(result) }
                         )
                     }
                 }
             }
+        }
+        
+        if (showFilterSheet) {
+            FilterSortBottomSheet(
+                onDismiss = { showFilterSheet = false },
+                filterState = filterState,
+                onFilterChange = { viewModel.updateFilter(it) },
+                availableGenres = emptyList(),
+                isCollection = true,
+                collectionSortOrder = sortOrder,
+                onSortChange = { viewModel.updateSortOrder(it) }
+            )
         }
     }
 }
@@ -225,6 +309,7 @@ fun SearchScreen(
 fun SearchResultItem(
     result: SearchResult,
     onClick: () -> Unit,
+    onAddClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -283,6 +368,12 @@ fun SearchResultItem(
                             Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
+                }
+            }
+            
+            if (result !is SearchResult.PersonResult) {
+                IconButton(onClick = onAddClick) {
+                    Icon(Icons.Default.Add, contentDescription = "Add to Watchlist", tint = MaterialTheme.colorScheme.primary)
                 }
             }
         }

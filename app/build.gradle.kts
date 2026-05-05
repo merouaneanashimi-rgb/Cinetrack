@@ -137,12 +137,12 @@ fun getTraktClientId(): String {
     return getLocalProperty("TRAKT_CLIENT_ID")
         ?: project.findProperty("TRAKT_CLIENT_ID") as String?
         ?: System.getenv("TRAKT_CLIENT_ID")
-        ?: ""
+        ?: "4e1c74f04393a15e9cb7ec8bc86de1aa62eaeed368a4231c1418c45bf3803e7f"
 }
 
 fun getTraktClientSecret(): String {
     return getLocalProperty("TRAKT_CLIENT_SECRET")
         ?: project.findProperty("TRAKT_CLIENT_SECRET") as String?
         ?: System.getenv("TRAKT_CLIENT_SECRET")
-        ?: ""
+        ?: "41badee254df6c21160eaa4f578e0b53af52656ec1d8e8c2f7e0d483393dc272"
 }

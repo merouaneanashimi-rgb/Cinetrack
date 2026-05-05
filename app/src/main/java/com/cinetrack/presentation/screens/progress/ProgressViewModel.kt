@@ -34,38 +34,49 @@ class ProgressViewModel @Inject constructor(
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
     val stats: StateFlow<StatsData> = combine(
-        totalShows,
-        totalMovies,
-        continueWatching,
+        showRepository.getAllTrackedShows(),
+        movieRepository.getWatchedMovies(),
+        showRepository.getAllWatchedEpisodes(),
         recentlyWatched
-    ) { shows, movies, watching, recent ->
-        val totalEpsWatched = recent.size
-        val totalWatchTimeHours = totalEpsWatched * 45 / 60 // Estimate 45 min per episode
-        val genreDistribution = recent.groupBy { it.showId }.map { (_, eps) -> eps.size }
+    ) { allShows, watchedMovies, allWatchedEps, recent ->
+        val totalEpsWatched = allWatchedEps.size
+        val movieWatchTime = watchedMovies.sumOf { it.runtime ?: 100 }
+        val showWatchTime = allWatchedEps.sumOf { it.runtime ?: 45 }
+        val totalWatchTimeMinutes = movieWatchTime + showWatchTime
+        val totalWatchTimeHours = totalWatchTimeMinutes / 60
         
         StatsData(
-            totalShowsTracked = shows,
+            totalShowsTracked = allShows.size,
             totalEpisodesWatched = totalEpsWatched,
             totalWatchTimeHours = totalWatchTimeHours,
-            totalMoviesWatched = movies,
-            genreDistribution = genreDistribution,
-            weeklyActivity = generateWeeklyActivity(),
-            statusDistribution = generateStatusDistribution(watching)
+            totalMoviesWatched = watchedMovies.size,
+            weeklyActivity = calculateWeeklyActivity(recent),
+            statusDistribution = calculateStatusDistribution(allShows)
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), StatsData())
 
     init {
-        viewModelScope.launch {
-            _watchedMoviesCount.value = movieRepository.getWatchedMovieCount()
+        // Initialization if needed
+    }
+
+    private fun calculateWeeklyActivity(recent: List<Episode>): List<Int> {
+        val now = System.currentTimeMillis()
+        val oneDayMillis = 24 * 3600 * 1000L
+        val activity = MutableList(7) { 0 }
+        
+        recent.forEach { episode ->
+            episode.watchedAt?.let { watchedAt ->
+                val daysAgo = ((now - watchedAt) / oneDayMillis).toInt()
+                if (daysAgo in 0..6) {
+                    activity[6 - daysAgo]++
+                }
+            }
         }
+        return activity
     }
 
-    private fun generateWeeklyActivity(): List<Int> {
-        return List(12) { (0..15).random() }
-    }
-
-    private fun generateStatusDistribution(watching: List<Show>): Map<String, Int> {
-        return watching.groupBy { it.airStatus.name }.mapValues { it.value.size }
+    private fun calculateStatusDistribution(allShows: List<Show>): Map<String, Int> {
+        return allShows.groupBy { it.airStatus.name }.mapValues { it.value.size }
     }
 }
 

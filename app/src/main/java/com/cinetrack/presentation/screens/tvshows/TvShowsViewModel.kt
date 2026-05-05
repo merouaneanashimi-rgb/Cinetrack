@@ -77,12 +77,14 @@ class TvShowsViewModel @Inject constructor(
 
     private fun sortShows(shows: List<Show>, order: CollectionSortOrder): List<Show> {
         return when (order) {
-            CollectionSortOrder.ADDED_DESC -> shows.sortedByDescending { it.id }
-            CollectionSortOrder.ADDED_ASC -> shows.sortedBy { it.id }
+            CollectionSortOrder.ADDED_DESC -> shows.sortedByDescending { it.addedAt }
+            CollectionSortOrder.ADDED_ASC -> shows.sortedBy { it.addedAt }
             CollectionSortOrder.ALPHABETICAL_ASC -> shows.sortedBy { it.title }
             CollectionSortOrder.ALPHABETICAL_DESC -> shows.sortedByDescending { it.title }
             CollectionSortOrder.RELEASE_DATE_DESC -> shows.sortedByDescending { it.firstAirDate }
             CollectionSortOrder.RATING_DESC -> shows.sortedByDescending { it.voteAverage }
+            CollectionSortOrder.POPULARITY_DESC -> shows.sortedByDescending { it.popularity }
+            CollectionSortOrder.RUNTIME_DESC -> shows.sortedByDescending { it.episodeRuntime }
         }
     }
 
@@ -119,6 +121,21 @@ class TvShowsViewModel @Inject constructor(
         _selectedSubTab.value = index
     }
 
+    fun addToWatchlist(item: MediaItem) {
+        viewModelScope.launch {
+            val show = Show(
+                tmdbId = item.tmdbId,
+                title = item.title,
+                posterPath = item.posterPath,
+                backdropPath = item.backdropPath,
+                firstAirDate = item.year,
+                voteAverage = item.rating,
+                genres = item.genreIds.map { it.toString() }
+            )
+            showRepository.addShow(show, UserListType.WATCHLIST)
+        }
+    }
+
     val allTrackedShows: StateFlow<List<Show>> = combine(
         showRepository.getAllTrackedShows(),
         collectionSortState
@@ -147,6 +164,17 @@ class TvShowsViewModel @Inject constructor(
                 }
                 filter.voteAverageGte?.let { params["vote_average.gte"] = it.toString() }
                 filter.runtimeGte?.let { params["with_runtime.gte"] = it.toString() }
+                filter.year?.let { params["first_air_date_year"] = it.toString() }
+                filter.status?.let { 
+                    val statusId = when(it) {
+                        "Returning Series" -> "0"
+                        "Ended" -> "3"
+                        "Canceled" -> "4"
+                        "In Production" -> "1"
+                        else -> null
+                    }
+                    if (statusId != null) params["with_status"] = statusId
+                }
                 filter.releaseDateGte?.let { params["first_air_date.gte"] = it }
 
                 val isFiltering = filter != MediaFilterState()

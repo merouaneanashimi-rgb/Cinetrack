@@ -98,6 +98,7 @@ fun MoviesScreen(
                     isLoading = isLoading,
                     onRefresh = { viewModel.loadDiscoverMovies() },
                     onLoadMore = { viewModel.loadDiscoverMovies(loadMore = true) },
+                    onAddClick = { viewModel.addToWatchlist(it.toMediaItem()) },
                     modifier = Modifier.padding(padding)
                 )
                 1 -> MovieGrid(
@@ -105,6 +106,7 @@ fun MoviesScreen(
                     onMovieClick = onMovieClick,
                     isLoading = false,
                     onRefresh = {},
+                    onAddClick = { /* Already in watchlist */ },
                     modifier = Modifier.padding(padding)
                 )
                 2 -> MovieGrid(
@@ -112,6 +114,7 @@ fun MoviesScreen(
                     onMovieClick = onMovieClick,
                     isLoading = false,
                     onRefresh = {},
+                    onAddClick = { /* Already watched */ },
                     modifier = Modifier.padding(padding)
                 )
                 3 -> MovieGrid(
@@ -119,6 +122,7 @@ fun MoviesScreen(
                     onMovieClick = onMovieClick,
                     isLoading = false,
                     onRefresh = {},
+                    onAddClick = { /* Already favorite */ },
                     modifier = Modifier.padding(padding)
                 )
                 else -> EmptyState(message = stringResource(R.string.empty_state_title))
@@ -139,6 +143,18 @@ fun MoviesScreen(
     }
 }
 
+private fun Movie.toMediaItem() = com.cinetrack.presentation.screens.discover.MediaItem(
+    id = tmdbId,
+    tmdbId = tmdbId,
+    title = title,
+    posterPath = posterPath,
+    backdropPath = backdropPath,
+    year = if (releaseDate.length >= 4) releaseDate.take(4) else "",
+    rating = voteAverage,
+    genreIds = genreIds,
+    isMovie = true
+)
+
 @Composable
 fun MovieGrid(
     items: List<Movie>,
@@ -146,15 +162,16 @@ fun MovieGrid(
     isLoading: Boolean,
     onRefresh: () -> Unit,
     onLoadMore: (() -> Unit)? = null,
+    onAddClick: (Movie) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val listState = androidx.compose.foundation.lazy.grid.rememberLazyGridState()
     
     if (onLoadMore != null) {
-        LaunchedEffect(listState) {
+        LaunchedEffect(listState, items.size) {
             snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
                 .collect { lastIndex ->
-                    if (lastIndex != null && lastIndex >= items.size - 4 && !isLoading) {
+                    if (lastIndex != null && lastIndex >= items.size - 6 && !isLoading) {
                         onLoadMore()
                     }
                 }
@@ -177,10 +194,11 @@ fun MovieGrid(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier.fillMaxSize()
             ) {
-                items(items, key = { "${it.id}_${it.tmdbId}" }) { movie ->
+                items(items, key = { movie -> "movie_${movie.tmdbId}_${movie.id}" }) { movie ->
                     MovieGridCard(
                         movie = movie,
-                        onClick = { onMovieClick(movie.tmdbId.toLong()) }
+                        onClick = { onMovieClick(movie.tmdbId.toLong()) },
+                        onAddClick = { onAddClick(movie) }
                     )
                 }
             }
@@ -192,6 +210,7 @@ fun MovieGrid(
 fun MovieGridCard(
     movie: Movie,
     onClick: () -> Unit,
+    onAddClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -235,6 +254,26 @@ fun MovieGridCard(
                         style = MaterialTheme.typography.labelMedium
                     )
                 }
+            }
+
+            // Add button overlay
+            IconButton(
+                onClick = onAddClick,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(4.dp)
+                    .size(40.dp)
+                    .background(
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.9f),
+                        androidx.compose.foundation.shape.CircleShape
+                    )
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Add to watchlist",
+                    tint = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.size(24.dp)
+                )
             }
         }
         Spacer(modifier = Modifier.height(4.dp))

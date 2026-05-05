@@ -57,12 +57,14 @@ class MoviesViewModel @Inject constructor(
 
     private fun sortMovies(movies: List<Movie>, order: CollectionSortOrder): List<Movie> {
         return when (order) {
-            CollectionSortOrder.ADDED_DESC -> movies.sortedByDescending { it.id }
-            CollectionSortOrder.ADDED_ASC -> movies.sortedBy { it.id }
+            CollectionSortOrder.ADDED_DESC -> movies.sortedByDescending { it.addedAt }
+            CollectionSortOrder.ADDED_ASC -> movies.sortedBy { it.addedAt }
             CollectionSortOrder.ALPHABETICAL_ASC -> movies.sortedBy { it.title }
             CollectionSortOrder.ALPHABETICAL_DESC -> movies.sortedByDescending { it.title }
             CollectionSortOrder.RELEASE_DATE_DESC -> movies.sortedByDescending { it.releaseDate }
             CollectionSortOrder.RATING_DESC -> movies.sortedByDescending { it.voteAverage }
+            CollectionSortOrder.POPULARITY_DESC -> movies.sortedByDescending { it.popularity }
+            CollectionSortOrder.RUNTIME_DESC -> movies.sortedByDescending { it.runtime ?: 0 }
         }
     }
 
@@ -95,6 +97,21 @@ class MoviesViewModel @Inject constructor(
         _selectedTab.value = index
     }
 
+    fun addToWatchlist(item: MediaItem) {
+        viewModelScope.launch {
+            val movie = Movie(
+                tmdbId = item.tmdbId,
+                title = item.title,
+                posterPath = item.posterPath,
+                backdropPath = item.backdropPath,
+                releaseDate = item.year,
+                voteAverage = item.rating,
+                genreIds = item.genreIds
+            )
+            movieRepository.addMovie(movie, UserListType.WATCHLIST)
+        }
+    }
+
     private var currentPage = 1
     private var isLastPage = false
 
@@ -117,6 +134,7 @@ class MoviesViewModel @Inject constructor(
                 }
                 filter.voteAverageGte?.let { params["vote_average.gte"] = it.toString() }
                 filter.runtimeGte?.let { params["with_runtime.gte"] = it.toString() }
+                filter.year?.let { params["primary_release_year"] = it.toString() }
                 filter.releaseDateGte?.let { params["primary_release_date.gte"] = it }
 
                 val isFiltering = filter != MediaFilterState()

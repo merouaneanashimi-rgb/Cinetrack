@@ -87,10 +87,22 @@ fun CineTrackNavigation(navController: NavHostController) {
                         navController.navigate(Screen.Search.route)
                     },
                     onSeeAllMoviesClick = {
-                        navController.navigate(Screen.Movies.route)
+                        navController.navigate(Screen.Movies.route) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
                     },
                     onSeeAllShowsClick = {
-                        navController.navigate(Screen.TvShows.route)
+                        navController.navigate(Screen.TvShows.route) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
                     }
                 )
             }

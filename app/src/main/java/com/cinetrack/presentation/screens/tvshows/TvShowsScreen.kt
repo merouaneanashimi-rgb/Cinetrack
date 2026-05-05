@@ -120,10 +120,10 @@ fun TvShowsScreen(
                 0 -> {
                     val listState = androidx.compose.foundation.lazy.grid.rememberLazyGridState()
                     
-                    LaunchedEffect(listState) {
+                    LaunchedEffect(listState, discoverShows.size) {
                         snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
                             .collect { lastIndex ->
-                                if (lastIndex != null && lastIndex >= discoverShows.size - 4 && !isLoading) {
+                                if (lastIndex != null && lastIndex >= discoverShows.size - 6 && !isLoading) {
                                     viewModel.loadDiscoverShows(loadMore = true)
                                 }
                             }
@@ -142,7 +142,11 @@ fun TvShowsScreen(
                             verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
                             items(discoverShows, key = { it.id }) { show ->
-                                MediaCard(item = show, onClick = { onShowClick(show.tmdbId.toLong()) })
+                                MediaCard(
+                                    item = show,
+                                    onClick = { onShowClick(show.tmdbId.toLong()) },
+                                    onAddClick = { viewModel.addToWatchlist(show) }
+                                )
                             }
                         }
                     }
@@ -156,26 +160,31 @@ fun TvShowsScreen(
                 2 -> ShowListGrid(
                     showsFlow = viewModel.watchlistShows,
                     onShowClick = onShowClick,
+                    onAddClick = { /* Already in watchlist */ },
                     modifier = Modifier.padding(padding)
                 )
                 3 -> ShowListGrid(
                     showsFlow = viewModel.watchedShows,
                     onShowClick = onShowClick,
+                    onAddClick = { /* Already watched */ },
                     modifier = Modifier.padding(padding)
                 )
                 4 -> ShowListGrid(
                     showsFlow = viewModel.droppedShows,
                     onShowClick = onShowClick,
+                    onAddClick = { /* Already in collection */ },
                     modifier = Modifier.padding(padding)
                 )
                 5 -> ShowListGrid(
                     showsFlow = viewModel.planToWatchShows,
                     onShowClick = onShowClick,
+                    onAddClick = { /* Already in collection */ },
                     modifier = Modifier.padding(padding)
                 )
                 6 -> ShowListGrid(
                     showsFlow = viewModel.favoriteShows,
                     onShowClick = onShowClick,
+                    onAddClick = { /* Already favorite */ },
                     modifier = Modifier.padding(padding)
                 )
                 7 -> CollectionContent(
@@ -446,6 +455,7 @@ fun WatchingShowCard(
 fun ShowListGrid(
     showsFlow: StateFlow<List<Show>>,
     onShowClick: (Long) -> Unit,
+    onAddClick: (Show) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val shows by showsFlow.collectAsState()
@@ -461,7 +471,11 @@ fun ShowListGrid(
             modifier = modifier.fillMaxSize()
         ) {
             items(shows, key = { it.id }) { show ->
-                ShowGridCard(show = show, onClick = { onShowClick(show.tmdbId.toLong()) })
+                ShowGridCard(
+                    show = show,
+                    onClick = { onShowClick(show.tmdbId.toLong()) },
+                    onAddClick = { onAddClick(show) }
+                )
             }
         }
     }
@@ -471,6 +485,7 @@ fun ShowListGrid(
 fun ShowGridCard(
     show: Show,
     onClick: () -> Unit,
+    onAddClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val airStatusColor = show.airStatus.toColor()
@@ -502,6 +517,26 @@ fun ShowGridCard(
                     style = MaterialTheme.typography.labelSmall,
                     color = Color.White,
                     modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                )
+            }
+
+            // Add button overlay
+            IconButton(
+                onClick = onAddClick,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(4.dp)
+                    .size(40.dp)
+                    .background(
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.9f),
+                        androidx.compose.foundation.shape.CircleShape
+                    )
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Add to collection",
+                    tint = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.size(24.dp)
                 )
             }
         }

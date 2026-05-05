@@ -18,7 +18,8 @@ import javax.inject.Inject
 @HiltViewModel
 class DiscoverViewModel @Inject constructor(
     private val api: TmdbApiService,
-    private val showRepository: ShowRepository
+    private val showRepository: ShowRepository,
+    private val movieRepository: com.cinetrack.domain.repository.MovieRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(DiscoverUiState())
@@ -27,6 +28,34 @@ class DiscoverViewModel @Inject constructor(
     init {
         loadAllData()
         observeContinueWatching()
+    }
+
+    fun addToWatchlist(item: MediaItem) {
+        viewModelScope.launch {
+            if (item.isMovie) {
+                val movie = com.cinetrack.domain.model.Movie(
+                    tmdbId = item.tmdbId,
+                    title = item.title,
+                    posterPath = item.posterPath,
+                    backdropPath = item.backdropPath,
+                    releaseDate = item.year,
+                    voteAverage = item.rating,
+                    genreIds = item.genreIds
+                )
+                movieRepository.addMovie(movie, UserListType.WATCHLIST)
+            } else {
+                val show = com.cinetrack.domain.model.Show(
+                    tmdbId = item.tmdbId,
+                    title = item.title,
+                    posterPath = item.posterPath,
+                    backdropPath = item.backdropPath,
+                    firstAirDate = item.year,
+                    voteAverage = item.rating,
+                    genres = item.genreIds.map { it.toString() } // Simplification
+                )
+                showRepository.addShow(show, UserListType.WATCHLIST)
+            }
+        }
     }
 
     private fun observeContinueWatching() {

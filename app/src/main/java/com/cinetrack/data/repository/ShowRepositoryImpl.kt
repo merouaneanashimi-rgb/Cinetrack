@@ -258,6 +258,10 @@ class ShowRepositoryImpl @Inject constructor(
         return episodeDao.getRecentlyWatched(limit).map { list -> list.map { it.toDomainModel() } }
     }
 
+    override fun getAllWatchedEpisodes(): Flow<List<Episode>> {
+        return episodeDao.getWatchedEpisodes().map { list -> list.map { it.toDomainModel() } }
+    }
+
     override suspend fun getNotificationEnabledShows(): List<Show> {
         return showDao.getNotificationEnabled().map { it.toDomainModel() }
     }

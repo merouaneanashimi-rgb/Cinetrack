@@ -39,6 +39,7 @@ interface ShowRepository {
     suspend fun getTotalEpisodeCount(showId: Long): Int
     suspend fun getNextUnwatchedEpisode(showId: Long): Episode?
     fun getRecentlyWatchedEpisodes(limit: Int): Flow<List<Episode>>
+    fun getAllWatchedEpisodes(): Flow<List<Episode>>
     suspend fun getNotificationEnabledShows(): List<Show>
     suspend fun isShowTracked(tmdbId: Int): Boolean
 }

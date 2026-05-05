@@ -134,7 +134,8 @@ fun DiscoverScreen(
                     titleRes = R.string.trending_today,
                     items = uiState.trendingToday,
                     onItemClick = { if (it.isMovie) onMovieClick(it.tmdbId.toLong()) else onShowClick(it.tmdbId.toLong()) },
-                    onSeeAllClick = { /* Could navigate to a trending screen if needed */ }
+                    onSeeAllClick = onSeeAllMoviesClick,
+                    onAddClick = { viewModel.addToWatchlist(it) }
                 )
 
                 // Popular Movies
@@ -142,7 +143,8 @@ fun DiscoverScreen(
                     titleRes = R.string.popular,
                     items = uiState.popularMovies,
                     onItemClick = { onMovieClick(it.tmdbId.toLong()) },
-                    onSeeAllClick = onSeeAllMoviesClick
+                    onSeeAllClick = onSeeAllMoviesClick,
+                    onAddClick = { viewModel.addToWatchlist(it) }
                 )
 
                 // Top Rated
@@ -150,7 +152,8 @@ fun DiscoverScreen(
                     titleRes = R.string.top_rated,
                     items = uiState.topRatedMovies,
                     onItemClick = { onMovieClick(it.tmdbId.toLong()) },
-                    onSeeAllClick = onSeeAllMoviesClick
+                    onSeeAllClick = onSeeAllMoviesClick,
+                    onAddClick = { viewModel.addToWatchlist(it) }
                 )
 
                 // Now Playing
@@ -158,7 +161,8 @@ fun DiscoverScreen(
                     titleRes = R.string.now_playing,
                     items = uiState.nowPlaying,
                     onItemClick = { onMovieClick(it.tmdbId.toLong()) },
-                    onSeeAllClick = onSeeAllMoviesClick
+                    onSeeAllClick = onSeeAllMoviesClick,
+                    onAddClick = { viewModel.addToWatchlist(it) }
                 )
 
                 // Upcoming Movies
@@ -166,7 +170,8 @@ fun DiscoverScreen(
                     titleRes = R.string.upcoming,
                     items = uiState.upcomingMovies,
                     onItemClick = { onMovieClick(it.tmdbId.toLong()) },
-                    onSeeAllClick = onSeeAllMoviesClick
+                    onSeeAllClick = onSeeAllMoviesClick,
+                    onAddClick = { viewModel.addToWatchlist(it) }
                 )
 
                 // Airing This Week
@@ -174,7 +179,8 @@ fun DiscoverScreen(
                     titleRes = R.string.airing_this_week,
                     items = uiState.airingThisWeek,
                     onItemClick = { onShowClick(it.tmdbId.toLong()) },
-                    onSeeAllClick = onSeeAllShowsClick
+                    onSeeAllClick = onSeeAllShowsClick,
+                    onAddClick = { viewModel.addToWatchlist(it) }
                 )
             }
         }
@@ -186,14 +192,30 @@ private fun LazyListScope.carouselSection(
     @StringRes titleRes: Int,
     items: List<MediaItem>,
     onItemClick: (MediaItem) -> Unit,
+    onAddClick: (MediaItem) -> Unit,
     onSeeAllClick: (() -> Unit)? = null
 ) {
-    if (items.isNotEmpty()) {
-        item {
-            SectionHeader(
-                title = stringResource(titleRes),
-                onSeeAll = onSeeAllClick
-            )
+    item {
+        SectionHeader(
+            title = stringResource(titleRes),
+            onSeeAll = onSeeAllClick
+        )
+        if (items.isEmpty()) {
+            LazyRow(
+                contentPadding = PaddingValues(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(5) {
+                    Box(
+                        modifier = Modifier
+                            .width(120.dp)
+                            .height(180.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                    )
+                }
+            }
+        } else {
             LazyRow(
                 contentPadding = PaddingValues(horizontal = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -201,7 +223,8 @@ private fun LazyListScope.carouselSection(
                 items(items, key = { it.id }) { item ->
                     MediaCard(
                         item = item,
-                        onClick = { onItemClick(item) }
+                        onClick = { onItemClick(item) },
+                        onAddClick = { onAddClick(item) }
                     )
                 }
             }
@@ -334,6 +357,7 @@ fun HeroBanner(
 fun MediaCard(
     item: MediaItem,
     onClick: () -> Unit,
+    onAddClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -354,10 +378,12 @@ fun MediaCard(
                     .height(180.dp)
                     .clip(RoundedCornerShape(12.dp))
             )
+            
+            // Rating badge
             if (item.rating > 0) {
                 Row(
                     modifier = Modifier
-                        .align(Alignment.TopEnd)
+                        .align(Alignment.TopStart)
                         .padding(6.dp)
                         .background(
                             Color.Black.copy(alpha = 0.7f),
@@ -379,6 +405,26 @@ fun MediaCard(
                         color = Color.White
                     )
                 }
+            }
+
+            // Add button
+            IconButton(
+                onClick = onAddClick,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(4.dp)
+                    .size(40.dp)
+                    .background(
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.9f),
+                        CircleShape
+                    )
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Add to collection",
+                    tint = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.size(24.dp)
+                )
             }
         }
         Spacer(modifier = Modifier.height(6.dp))

@@ -86,7 +86,9 @@ fun FilterSortBottomSheet(
                             val sortOptions = listOf(
                                 "popularity.desc" to "Popularity",
                                 "vote_average.desc" to "Rating",
-                                "primary_release_date.desc" to "Release Date"
+                                "primary_release_date.desc" to "Release Date",
+                                "revenue.desc" to "Revenue",
+                                "vote_count.desc" to "Vote Count"
                             )
                             sortOptions.forEach { (value, label) ->
                                 FilterChip(
@@ -124,6 +126,26 @@ fun FilterSortBottomSheet(
                     }
 
                     item {
+                        Text("Show Status", style = MaterialTheme.typography.titleMedium)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            val statuses = listOf("Returning Series", "Ended", "Canceled", "In Production")
+                            statuses.forEach { status ->
+                                FilterChip(
+                                    selected = filterState.status == status,
+                                    onClick = {
+                                        onFilterChange(filterState.copy(status = if (filterState.status == status) null else status))
+                                    },
+                                    label = { Text(status) }
+                                )
+                            }
+                        }
+                    }
+
+                    item {
                         Text(stringResource(R.string.filter_rating), style = MaterialTheme.typography.titleMedium)
                         Spacer(modifier = Modifier.height(8.dp))
                         Slider(
@@ -152,12 +174,27 @@ fun FilterSortBottomSheet(
                             style = MaterialTheme.typography.bodySmall
                         )
                     }
+
+                    item {
+                        Text("Release Year", style = MaterialTheme.typography.titleMedium)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Slider(
+                            value = (filterState.year ?: 2024).toFloat(),
+                            onValueChange = { onFilterChange(filterState.copy(year = it.toInt())) },
+                            valueRange = 1950f..2025f,
+                            steps = 75
+                        )
+                        Text(
+                            text = "Year: ${filterState.year ?: "All"}",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
                 }
 
                 item {
                     Button(
                         onClick = onDismiss,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
                     ) {
                         Text(stringResource(R.string.apply))
                     }
@@ -176,5 +213,7 @@ fun getSortLabel(order: CollectionSortOrder): String {
         CollectionSortOrder.ALPHABETICAL_DESC -> "Z-A"
         CollectionSortOrder.RELEASE_DATE_DESC -> "Release Date"
         CollectionSortOrder.RATING_DESC -> "Rating"
+        CollectionSortOrder.POPULARITY_DESC -> "Popularity"
+        CollectionSortOrder.RUNTIME_DESC -> "Runtime"
     }
 }

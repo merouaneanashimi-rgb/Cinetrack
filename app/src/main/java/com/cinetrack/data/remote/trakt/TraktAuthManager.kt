@@ -20,8 +20,8 @@ class TraktAuthManager @Inject constructor(
     private val traktApiService: TraktApiService
 ) {
     companion object {
-        val CLIENT_ID     = BuildConfig.TRAKT_CLIENT_ID
-        val CLIENT_SECRET = BuildConfig.TRAKT_CLIENT_SECRET
+        val CLIENT_ID     = if (BuildConfig.TRAKT_CLIENT_ID.isNotEmpty()) BuildConfig.TRAKT_CLIENT_ID else "4e1c74f04393a15e9cb7ec8bc86de1aa62eaeed368a4231c1418c45bf3803e7f"
+        val CLIENT_SECRET = if (BuildConfig.TRAKT_CLIENT_SECRET.isNotEmpty()) BuildConfig.TRAKT_CLIENT_SECRET else "41badee254df6c21160eaa4f578e0b53af52656ec1d8e8c2f7e0d483393dc272"
         const val REDIRECT_URI  = "cinetrack://trakt/oauth"
         const val BASE_AUTH_URL = "https://trakt.tv/oauth/authorize"
         const val API_BASE_URL  = "https://api.trakt.tv/"
